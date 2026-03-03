@@ -15,7 +15,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
 	<name>medicalbillportal</name>
-	<description>Retired Employee Claim Process</description>
+	<description>Retired Employee Claim Process </description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
