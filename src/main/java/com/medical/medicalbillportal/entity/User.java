@@ -1,7 +1,5 @@
 package com.medical.medicalbillportal.entity;
 
-import javax.management.relation.Role;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
