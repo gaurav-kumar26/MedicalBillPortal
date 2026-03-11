@@ -2,13 +2,7 @@ package com.medical.medicalbillportal.entity;
 
 import java.time.LocalDate;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,19 +12,19 @@ import lombok.Setter;
 @Setter
 public class Claim {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@ManyToOne
-	private Employee employee;
+    @ManyToOne
+    private Employee employee;
 
-	private LocalDate claimDate;
-	private Double totalAmount;
-	private Double approvedAmount;
-	private String status;
-	private String billPath;
+    private LocalDate claimDate;
+    private Double totalAmount;
+    private Double approvedAmount;
+    private String status;
+    private String billPath;
 
-	@Column(length = 2000)
-	private String remarks;
+    @Column(length = 2000)
+    private String remarks;
 }

@@ -33,8 +33,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // Skip JWT validation for auth APIs
-        if (path.startsWith("/api/auth")) {
+        // Allow auth APIs without token
+        if (path.startsWith("/auth")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -43,7 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String jwt = null;
         String username = null;
 
-        // Check Authorization header
+        // Extract token
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
             username = jwtService.extractUsername(jwt);
