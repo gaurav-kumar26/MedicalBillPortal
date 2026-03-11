@@ -33,4 +33,8 @@ public class Claim {
 
 	@Column(length = 2000)
 	private String remarks;
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
 }

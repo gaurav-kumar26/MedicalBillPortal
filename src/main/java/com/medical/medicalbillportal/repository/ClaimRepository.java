@@ -9,10 +9,12 @@ import com.medical.medicalbillportal.entity.Employee;
 
 public interface ClaimRepository extends JpaRepository<Claim, Long> {
 
-    // Find all claims of a particular employee
-    List<Claim> findByEmployee(Employee employee);
+	// Find claims of a particular employee
+	List<Claim> findByEmployee(Employee employee);
 
-    // Find claims by status (PENDING, APPROVED, REJECTED)
-    List<Claim> findByStatus(String status);
+	// Find claims by employee id
+	List<Claim> findByEmployeeId(Long employeeId);
 
+	// Find claims by status
+	List<Claim> findByStatus(String status);
 }
