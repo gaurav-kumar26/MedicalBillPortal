@@ -9,44 +9,34 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import com.medical.medicalbillportal.entity.Claim;
 import com.medical.medicalbillportal.service.ClaimService;
 
 @Controller
-@RequestMapping("/medical")
-public class MedicalController {
+@RequestMapping("/reception")
+public class ReceptionController {
 
 	@Autowired
 	private ClaimService claimService;
 
-	// Show claims waiting for medical review
+	// Show claims waiting for reception verification
 	@GetMapping("/dashboard")
 	public String dashboard(Model model) {
 
-		List<Claim> claims = claimService.getClaimsByStatus("RECEPTION_VERIFIED");
+		List<Claim> claims = claimService.getClaimsByStatus("SUBMITTED");
 
 		model.addAttribute("claims", claims);
 
-		return "medical-dashboard";
+		return "reception-dashboard";
 	}
 
-	// Approve claim
-	@PostMapping("/approve/{id}")
-	public String approveClaim(@PathVariable Long id, @RequestParam Double approvedAmount) {
+	// Verify claim
+	@PostMapping("/verify/{id}")
+	public String verifyClaim(@PathVariable Long id) {
 
-		claimService.approveClaim(id, approvedAmount);
+		claimService.verifyClaim(id);
 
-		return "redirect:/medical/dashboard";
-	}
-
-	// Reject claim
-	@PostMapping("/reject/{id}")
-	public String rejectClaim(@PathVariable Long id) {
-
-		claimService.rejectClaim(id);
-
-		return "redirect:/medical/dashboard";
+		return "redirect:/reception/dashboard";
 	}
 }
