@@ -1,10 +1,7 @@
 package com.medical.medicalbillportal.service;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -24,9 +21,25 @@ public class ClaimService {
 
     private final String uploadDir = "uploads/bills/";
 
-    // Employee submits claim with bill upload
+    // 🔥 Employee submits claim with file + duplicate check
     public Claim submitClaim(Claim claim, MultipartFile file) throws IOException {
 
+        // 🔥 Set date FIRST (IMPORTANT)
+        claim.setClaimDate(LocalDate.now());
+
+        // 🔥 Duplicate check
+        boolean exists = claimRepository
+                .existsByGstNumberAndClaimDateAndTotalAmount(
+                        claim.getGstNumber(),
+                        claim.getClaimDate(),
+                        claim.getTotalAmount()
+                );
+
+        if (exists) {
+            throw new RuntimeException("Duplicate claim detected for same GST, date, and amount!");
+        }
+
+        // 🔥 File Upload
         String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
         Path path = Paths.get(uploadDir + fileName);
@@ -35,14 +48,14 @@ public class ClaimService {
 
         Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
 
+        // 🔥 Set remaining fields
         claim.setBillPath(fileName);
-        claim.setClaimDate(LocalDate.now());
         claim.setStatus("SUBMITTED");
 
         return claimRepository.save(claim);
     }
 
-    // Reception verifies claim
+    // 🔹 Reception verifies claim
     public Claim verifyClaim(Long claimId) {
 
         Claim claim = claimRepository.findById(claimId)
@@ -53,30 +66,32 @@ public class ClaimService {
         return claimRepository.save(claim);
     }
 
-    // Medical officer approves claim
-    public Claim approveClaim(Long claimId, Double approvedAmount) {
+    // 🔥 Medical officer approves claim WITH remarks
+    public Claim approveClaim(Long claimId, Double approvedAmount, String remarks) {
 
         Claim claim = claimRepository.findById(claimId)
                 .orElseThrow(() -> new RuntimeException("Claim not found"));
 
         claim.setApprovedAmount(approvedAmount);
+        claim.setRemarks(remarks);
         claim.setStatus("MEDICAL_APPROVED");
 
         return claimRepository.save(claim);
     }
 
-    // Medical officer rejects claim
-    public Claim rejectClaim(Long claimId) {
+    // 🔥 Medical officer rejects claim WITH remarks
+    public Claim rejectClaim(Long claimId, String remarks) {
 
         Claim claim = claimRepository.findById(claimId)
                 .orElseThrow(() -> new RuntimeException("Claim not found"));
 
+        claim.setRemarks(remarks);
         claim.setStatus("MEDICAL_REJECTED");
 
         return claimRepository.save(claim);
     }
 
-    // Finance processes payment
+    // 🔹 Finance processes payment
     public Claim markAsPaid(Long claimId) {
 
         Claim claim = claimRepository.findById(claimId)
@@ -87,17 +102,17 @@ public class ClaimService {
         return claimRepository.save(claim);
     }
 
-    // Get all claims
+    // 🔹 Get all claims
     public List<Claim> getAllClaims() {
         return claimRepository.findAll();
     }
 
-    // Get claims by employee
+    // 🔹 Get claims by employee
     public List<Claim> getClaimsByEmployee(Long employeeId) {
         return claimRepository.findByEmployeeId(employeeId);
     }
 
-    // Get claims by status
+    // 🔹 Get claims by status
     public List<Claim> getClaimsByStatus(String status) {
         return claimRepository.findByStatus(status);
     }

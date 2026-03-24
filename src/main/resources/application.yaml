@@ -16,3 +16,8 @@ spring:
   servlet:
     multipart:
       max-file-size: 5MB
+
+  # 🔥 ADD THIS PART
+  web:
+    resources:
+      static-locations: file:uploads/

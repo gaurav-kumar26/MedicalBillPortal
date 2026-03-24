@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Staff Login</title>
+</head>
+<body>
+
+<h2>Staff Login</h2>
+
+<form th:action="@{/staff/login}" method="post">
+    <input type="text" name="username" placeholder="Username" required>
+
+    <input type="password" name="password" placeholder="Password" required>
+
+    <!-- Role selection -->
+    <select name="role">
+        <option value="ADMIN">Admin</option>
+        <option value="FINANCE">Finance</option>
+        <option value="RECEPTIONIST">Receptionist</option>
+        <option value="MEDICAL">Medical Officer</option>
+    </select>
+
+    <button type="submit">Login</button>
+</form>
+
+</body>
+</html>

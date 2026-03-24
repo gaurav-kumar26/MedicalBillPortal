@@ -1,5 +1,6 @@
 package com.medical.medicalbillportal.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,4 +20,11 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
 
     // Find claims by status
     List<Claim> findByStatus(String status);
+
+    // 🔥 NEW: Duplicate check (VERY IMPORTANT)
+    boolean existsByGstNumberAndClaimDateAndTotalAmount(
+            String gstNumber,
+            LocalDate claimDate,
+            Double totalAmount
+    );
 }
