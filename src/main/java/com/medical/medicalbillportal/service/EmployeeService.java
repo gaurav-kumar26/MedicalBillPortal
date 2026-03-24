@@ -12,11 +12,11 @@ import com.medical.medicalbillportal.repository.EmployeeRepository;
 public class EmployeeService {
 
 	@Autowired
-	private EmployeeRepository employeeRepository;
+	private EmployeeRepository employeeRepository; // ✅ FIX
 
 	// Save employee
 	public Employee saveEmployee(Employee employee) {
-		return employeeRepository.save(employee);
+		return employeeRepository.save(employee); // ✅ FIX
 	}
 
 	// Get all employees
@@ -32,5 +32,10 @@ public class EmployeeService {
 	// Delete employee
 	public void deleteEmployee(Long id) {
 		employeeRepository.deleteById(id);
+	}
+
+	// 🔥 IMPORTANT (YOU NEED THIS)
+	public Employee findByUsername(String username) {
+		return employeeRepository.findByUserUsername(username);
 	}
 }

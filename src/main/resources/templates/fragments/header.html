@@ -1,0 +1,95 @@
+<div th:fragment="header">
+
+    <!-- 🔥 Custom Style -->
+    <style>
+        .navbar-brand {
+            letter-spacing: 1px;
+            font-size: 22px;
+        }
+
+        .navbar {
+            border-radius: 0 0 15px 15px;
+        }
+
+        .active-link {
+            background-color: #0d6efd;
+            color: white !important;
+        }
+    </style>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-lg sticky-top">
+        <div class="container">
+
+            <!-- Logo -->
+            <a class="navbar-brand fw-bold text-warning" href="#">
+                💊 Medical Portal
+            </a>
+
+            <!-- Toggle -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Menu -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+
+                <ul class="navbar-nav ms-auto align-items-center gap-2">
+
+                    <!-- Employee -->
+                    <li class="nav-item">
+                        <a class="btn btn-outline-light btn-sm px-3 
+                           [[${#httpServletRequest.requestURI.contains('/employee')} ? 'active-link' : '']]"
+                           href="/employee/dashboard">
+                            👤 Employee
+                        </a>
+                    </li>
+
+                    <!-- Medical -->
+                    <li class="nav-item">
+                        <a class="btn btn-outline-info btn-sm px-3 
+                           [[${#httpServletRequest.requestURI.contains('/medical')} ? 'active-link' : '']]"
+                           href="/medical/dashboard">
+                            🏥 Medical
+                        </a>
+                    </li>
+
+                    <!-- 🔥 Profile Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="btn btn-outline-warning btn-sm dropdown-toggle px-3"
+                           href="#" role="button" data-bs-toggle="dropdown">
+
+                            👤 Profile
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end">
+
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    👤 My Profile
+                                </a>
+                            </li>
+
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    ⚙ Settings
+                                </a>
+                            </li>
+
+                            <li><hr class="dropdown-divider"></li>
+
+                            <li>
+                                <a class="dropdown-item text-danger" href="/auth/employee-login">
+                                    🚪 Logout
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>
+
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+
+</div>

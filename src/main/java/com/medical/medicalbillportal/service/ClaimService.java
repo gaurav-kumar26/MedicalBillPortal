@@ -19,86 +19,125 @@ import com.medical.medicalbillportal.repository.ClaimRepository;
 @Service
 public class ClaimService {
 
-    @Autowired
-    private ClaimRepository claimRepository;
+	@Autowired
+	private ClaimRepository claimRepository;
 
-    private final String uploadDir = "uploads/bills/";
+	private final String uploadDir = "uploads/bills/";
 
-    // Employee submits claim with bill upload
-    public Claim submitClaim(Claim claim, MultipartFile file) throws IOException {
+	// ==============================
+	// 1. Submit Claim (Employee)
+	// ==============================
+	public Claim submitClaim(Claim claim, MultipartFile file) throws IOException {
 
-        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+		// 🔥 Set claim date
+		claim.setClaimDate(LocalDate.now());
 
-        Path path = Paths.get(uploadDir + fileName);
+		// 🔥 Duplicate check
+		boolean exists = claimRepository.existsByGstNumberAndClaimDateAndTotalAmount(claim.getGstNumber(),
+				claim.getClaimDate(), claim.getTotalAmount());
 
-        Files.createDirectories(path.getParent());
+		if (exists) {
+			throw new RuntimeException("Duplicate claim detected!");
+		}
 
-        Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+		// 🔥 File Upload
+		String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
-        claim.setBillPath(fileName);
-        claim.setClaimDate(LocalDate.now());
-        claim.setStatus("SUBMITTED");
+		Path path = Paths.get(uploadDir + fileName);
 
-        return claimRepository.save(claim);
-    }
+		Files.createDirectories(path.getParent());
+		Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
 
-    // Reception verifies claim
-    public Claim verifyClaim(Long claimId) {
+		// 🔥 Set fields
+		claim.setBillPath(fileName);
+		claim.setStatus("SUBMITTED");
 
-        Claim claim = claimRepository.findById(claimId)
-                .orElseThrow(() -> new RuntimeException("Claim not found"));
+		return claimRepository.save(claim);
+	}
 
-        claim.setStatus("RECEPTION_VERIFIED");
+	// ==============================
+	// 2. Reception Verification
+	// ==============================
+	public Claim verifyClaim(Long claimId) {
 
-        return claimRepository.save(claim);
-    }
+		Claim claim = claimRepository.findById(claimId).orElseThrow(() -> new RuntimeException("Claim not found"));
 
-    // Medical officer approves claim
-    public Claim approveClaim(Long claimId, Double approvedAmount) {
+		claim.setStatus("RECEPTION_VERIFIED");
 
-        Claim claim = claimRepository.findById(claimId)
-                .orElseThrow(() -> new RuntimeException("Claim not found"));
+		return claimRepository.save(claim);
+	}
 
-        claim.setApprovedAmount(approvedAmount);
-        claim.setStatus("MEDICAL_APPROVED");
+	// ==============================
+	// 3. Medical Approval
+	// ==============================
+	public Claim approveClaim(Long claimId, Double approvedAmount, String remarks) {
 
-        return claimRepository.save(claim);
-    }
+		Claim claim = claimRepository.findById(claimId).orElseThrow(() -> new RuntimeException("Claim not found"));
 
-    // Medical officer rejects claim
-    public Claim rejectClaim(Long claimId) {
+		claim.setApprovedAmount(approvedAmount);
+		claim.setRemarks(remarks);
+		claim.setStatus("MEDICAL_APPROVED");
 
-        Claim claim = claimRepository.findById(claimId)
-                .orElseThrow(() -> new RuntimeException("Claim not found"));
+		return claimRepository.save(claim);
+	}
 
-        claim.setStatus("MEDICAL_REJECTED");
+	// ==============================
+	// 4. Medical Rejection
+	// ==============================
+	public Claim rejectClaim(Long claimId, String remarks) {
 
-        return claimRepository.save(claim);
-    }
+		Claim claim = claimRepository.findById(claimId).orElseThrow(() -> new RuntimeException("Claim not found"));
 
-    // Finance processes payment
-    public Claim markAsPaid(Long claimId) {
+		claim.setRemarks(remarks);
+		claim.setStatus("MEDICAL_REJECTED");
 
-        Claim claim = claimRepository.findById(claimId)
-                .orElseThrow(() -> new RuntimeException("Claim not found"));
+		return claimRepository.save(claim);
+	}
 
-        claim.setStatus("FINANCE_PAID");
+	// ==============================
+	// 5. Finance Payment
+	// ==============================
+	public Claim markAsPaid(Long claimId) {
 
-        return claimRepository.save(claim);
-    }
+		Claim claim = claimRepository.findById(claimId).orElseThrow(() -> new RuntimeException("Claim not found"));
 
-    // Get all claims
-    public List<Claim> getAllClaims() {
-        return claimRepository.findAll();
-    }
+		claim.setStatus("FINANCE_PAID");
 
-    // Get claims by employee
-    public List<Claim> getClaimsByEmployee(Long employeeId) {
-        return claimRepository.findByEmployeeId(employeeId);
-    }
+		return claimRepository.save(claim);
+	}
 
-    // Get claims by status
-    public List<Claim> getClaimsByStatus(String status) {
-        return claimRepository.findByStatus(status);
-    }
+	// ==============================
+	// 6. Get All Claims
+	// ==============================
+	public List<Claim> getAllClaims() {
+		return claimRepository.findAll();
+	}
+
+	// ==============================
+	// 7. Get Claim By ID ✅ (FIXED)
+	// ==============================
+	public Claim getClaimById(Long id) {
+		return claimRepository.findById(id).orElse(null);
+	}
+
+	// ==============================
+	// 8. Delete Claim ✅ (FIXED)
+	// ==============================
+	public void deleteClaim(Long id) {
+		claimRepository.deleteById(id);
+	}
+
+	// ==============================
+	// 9. Get Claims By Employee
+	// ==============================
+	public List<Claim> getClaimsByEmployee(Long employeeId) {
+		return claimRepository.findByEmployeeId(employeeId);
+	}
+
+	// ==============================
+	// 10. Get Claims By Status
+	// ==============================
+	public List<Claim> getClaimsByStatus(String status) {
+		return claimRepository.findByStatus(status);
+	}
 }

@@ -3,7 +3,6 @@ package com.medical.medicalbillportal.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -15,24 +14,39 @@ public class SecurityConfig {
 
 		http.csrf(csrf -> csrf.disable())
 
-				.authorizeHttpRequests(
-						auth -> auth.requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
+				.authorizeHttpRequests(auth -> auth
 
-								.requestMatchers("/admin/**").hasRole("ADMIN").requestMatchers("/reception/**")
-								.hasRole("RECEPTION").requestMatchers("/medical/**").hasRole("MEDICAL")
-								.requestMatchers("/finance/**").hasRole("FINANCE").requestMatchers("/claims/**")
-								.hasRole("EMPLOYEE")
+						// ✅ Allow login pages
+						.requestMatchers("/employee/login", "/staff/login", "/login", "/css/**", "/js/**", "/images/**")
+						.permitAll()
 
-								.anyRequest().authenticated())
+						// ✅ Role-based access
+						.requestMatchers("/admin/**").hasRole("ADMIN").requestMatchers("/reception/**")
+						.hasRole("RECEPTION").requestMatchers("/medical/**").hasRole("MEDICAL")
+						.requestMatchers("/finance/**").hasRole("FINANCE").requestMatchers("/employee/**", "/claims/**")
+						.hasRole("EMPLOYEE")
 
-				.formLogin(form -> form.loginPage("/login").defaultSuccessUrl("/dashboard", true).permitAll())
+						.anyRequest().authenticated())
 
-				.logout(logout -> logout.logoutSuccessUrl("/login?logout").permitAll());
+				.formLogin(form -> form
+						// ✅ Default login page
+						.loginPage("/employee/login")
+
+						// ✅ IMPORTANT (must match your form action)
+						.loginProcessingUrl("/login")
+
+						// ✅ After login redirect
+						.defaultSuccessUrl("/dashboard", true)
+
+						.permitAll())
+
+				.logout(logout -> logout.logoutSuccessUrl("/employee/login?logout").permitAll());
+
 		return http.build();
 	}
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
+		return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
 	}
 }

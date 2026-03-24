@@ -5,11 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import com.medical.medicalbillportal.entity.Claim;
 import com.medical.medicalbillportal.service.ClaimService;
@@ -18,35 +14,50 @@ import com.medical.medicalbillportal.service.ClaimService;
 @RequestMapping("/medical")
 public class MedicalController {
 
-	@Autowired
-	private ClaimService claimService;
+    @Autowired
+    private ClaimService claimService;
 
-	// Show claims waiting for medical review
-	@GetMapping("/dashboard")
-	public String dashboard(Model model) {
+    // 🔹 Dashboard
+    @GetMapping("/dashboard")
+    public String dashboard(Model model) {
 
-		List<Claim> claims = claimService.getClaimsByStatus("RECEPTION_VERIFIED");
+        List<Claim> claims = claimService.getClaimsByStatus("RECEPTION_VERIFIED");
+        model.addAttribute("claims", claims);
 
-		model.addAttribute("claims", claims);
+        return "medical/dashboard";
+    }
 
-		return "medical-dashboard";
-	}
+    // 🔹 Search by Claim ID
+    @GetMapping("/search")
+    public String search(@RequestParam String claimId, Model model) {
 
-	// Approve claim
-	@PostMapping("/approve/{id}")
-	public String approveClaim(@PathVariable Long id, @RequestParam Double approvedAmount) {
+        Claim claim = claimService.getAllClaims()
+                .stream()
+                .filter(c -> c.getClaimId().equalsIgnoreCase(claimId))
+                .findFirst()
+                .orElse(null);
 
-		claimService.approveClaim(id, approvedAmount);
+        model.addAttribute("claims", claim != null ? List.of(claim) : List.of());
 
-		return "redirect:/medical/dashboard";
-	}
+        return "medical/dashboard";
+    }
 
-	// Reject claim
-	@PostMapping("/reject/{id}")
-	public String rejectClaim(@PathVariable Long id) {
+    // 🔥 Approve WITH remarks (FIXED)
+    @PostMapping("/approve/{id}")
+    public String approveClaim(@PathVariable Long id,
+                               @RequestParam Double approvedAmount,
+                               @RequestParam String remarks) {
 
-		claimService.rejectClaim(id);
+        claimService.approveClaim(id, approvedAmount, remarks);
+        return "redirect:/medical/dashboard";
+    }
 
-		return "redirect:/medical/dashboard";
-	}
+    // 🔥 Reject WITH remarks (FIXED)
+    @PostMapping("/reject/{id}")
+    public String rejectClaim(@PathVariable Long id,
+                              @RequestParam String remarks) {
+
+        claimService.rejectClaim(id, remarks);
+        return "redirect:/medical/dashboard";
+    }
 }

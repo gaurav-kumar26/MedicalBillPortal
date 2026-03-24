@@ -27,7 +27,7 @@ public class ReceptionController {
 
 		model.addAttribute("claims", claims);
 
-		return "receptionist/dashboard";
+		return "reception/dashboard";
 	}
 
 	@PostMapping("/verify/{id}")

@@ -7,7 +7,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update   # ✅ FIXED
     show-sql: true
     properties:
       hibernate:
@@ -17,15 +17,18 @@ spring:
     multipart:
       max-file-size: 5MB
 
-  # 🔥 ADD THIS BLOCK
   mail:
     host: smtp.gmail.com
     port: 587
-    username: kushal.bhadra.project@gmail.com
-    password: 427883
+    username: your_email
+    password: your_app_password
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+
+  web:
+    resources:
+      static-locations: file:uploads/
