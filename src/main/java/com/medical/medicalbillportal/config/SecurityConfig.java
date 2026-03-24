@@ -15,16 +15,19 @@ public class SecurityConfig {
 
 		http.csrf(csrf -> csrf.disable())
 
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/login", "/css/**", "/js/**", "/images/**")
-						.permitAll().requestMatchers("/admin/**").hasRole("ADMIN").requestMatchers("/reception/**")
-						.hasRole("RECEPTION").requestMatchers("/medical/**").hasRole("MEDICAL")
-						.requestMatchers("/finance/**").hasRole("FINANCE").requestMatchers("/claims/**")
-						.hasRole("EMPLOYEE").anyRequest().authenticated())
+				.authorizeHttpRequests(
+						auth -> auth.requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
+
+								.requestMatchers("/admin/**").hasRole("ADMIN").requestMatchers("/reception/**")
+								.hasRole("RECEPTION").requestMatchers("/medical/**").hasRole("MEDICAL")
+								.requestMatchers("/finance/**").hasRole("FINANCE").requestMatchers("/claims/**")
+								.hasRole("EMPLOYEE")
+
+								.anyRequest().authenticated())
 
 				.formLogin(form -> form.loginPage("/login").defaultSuccessUrl("/dashboard", true).permitAll())
 
 				.logout(logout -> logout.logoutSuccessUrl("/login?logout").permitAll());
-
 		return http.build();
 	}
 
