@@ -14,50 +14,38 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-    }
+	public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+	}
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http
-            .csrf(csrf -> csrf.disable())
+		http.csrf(csrf -> csrf.disable())
 
-            .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/auth/**").permitAll()
-                    .requestMatchers("/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/reception/**").hasRole("RECEPTION")
-                    .requestMatchers("/medical/**").hasRole("MEDICAL")
-                    .requestMatchers("/finance/**").hasRole("FINANCE")
-                    .requestMatchers("/claims/**").hasRole("EMPLOYEE")
-                    .anyRequest().authenticated()
-            )
+		.requestMatchers("/auth/**").permitAll()
+						.hasRole("RECEPTION").requestMatchers("/medical/**").hasRole("MEDICAL")
+						.requestMatchers("/finance/**").hasRole("FINANCE").requestMatchers("/claims/**")
+						.hasRole("EMPLOYEE").anyRequest().authenticated())
 
-            .sessionManagement(session ->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            .logout(logout ->
-                    logout.logoutSuccessUrl("/login?logout").permitAll()
-            );
+				.logout(logout -> logout.logoutSuccessUrl("/login?logout").permitAll());
 
-        http.addFilterBefore(jwtAuthenticationFilter,
-                UsernamePasswordAuthenticationFilter.class);
+		http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+		return http.build();
+	}
 
-    @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
+	@Bean
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+		return config.getAuthenticationManager();
+	}
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
 }
