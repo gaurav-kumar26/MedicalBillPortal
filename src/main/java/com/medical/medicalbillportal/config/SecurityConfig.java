@@ -17,14 +17,17 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 
 						// ✅ Allow login pages
-						.requestMatchers("/employee/login", "/staff/login", "/login", "/css/**", "/js/**", "/images/**")
+						.requestMatchers("/", "/home", "/employee/login", "/staff/login", "/login", "/css/**", "/js/**",
+								"/images/**", "/uploads/**")
 						.permitAll()
 
 						// ✅ Role-based access
-						.requestMatchers("/admin/**").hasRole("ADMIN").requestMatchers("/reception/**")
-						.hasRole("RECEPTION").requestMatchers("/medical/**").hasRole("MEDICAL")
-						.requestMatchers("/finance/**").hasRole("FINANCE").requestMatchers("/employee/**", "/claims/**")
-						.hasRole("EMPLOYEE")
+						.requestMatchers("/admin/**").hasRole("ADMIN")
+						.requestMatchers("/reception/**").hasRole("RECEPTION")
+						.requestMatchers("/medical/**").hasRole("MEDICAL")
+						.requestMatchers("/finance/**").hasRole("FINANCE")
+						.requestMatchers("/employee/**").hasAnyRole("EMPLOYEE", "ADMIN")
+						.requestMatchers("/claims/**").hasAnyRole("EMPLOYEE", "ADMIN")
 
 						.anyRequest().authenticated())
 

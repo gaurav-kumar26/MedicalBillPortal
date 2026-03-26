@@ -33,6 +33,6 @@ public class AdminController {
 
 		model.addAttribute("claims", allClaims);
 
-		return "admin/dashboard";
+		return "admin-dashboard";
 	}
 }

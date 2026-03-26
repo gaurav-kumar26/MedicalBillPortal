@@ -6,16 +6,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class LoginController {
 
+	@GetMapping({ "/", "/home" })
+	public String home() {
+		return "home";
+	}
+
 	// Employee Login Page
 	@GetMapping("/employee/login")
 	public String employeeLogin() {
-		return "auth/employee-login";
+		return "employee-login";
 	}
 
 	// Staff Login Page
 	@GetMapping("/staff/login")
 	public String staffLogin() {
-		return "auth/staff-login";
+		return "staff-login";
 	}
 
 	// After login redirect based on role

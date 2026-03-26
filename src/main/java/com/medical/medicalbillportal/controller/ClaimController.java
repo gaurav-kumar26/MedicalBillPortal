@@ -41,18 +41,23 @@ public class ClaimController {
 
 		System.out.println("Dashboard Loaded: " + claims.size() + " records");
 
-		return "employee/dashboard";
+		return "redirect:/employee/dashboard";
 	}
 
 	// ==============================
 	// 2. Show Claim Submission Form
 	// ==============================
 	@GetMapping("/form")
-	public String showClaimForm(Model model) {
+	public String showClaimForm(Authentication authentication, Model model) {
 
 		model.addAttribute("claim", new Claim());
 
-		return "employee/submit";
+		// Prefill employee details for the UI only (claim still gets employee in submit handler).
+		Employee employee = employeeService.findByUsername(authentication.getName());
+		model.addAttribute("employeeName", employee.getName());
+		model.addAttribute("employeeCode", employee.getEmployeeCode());
+
+		return "claim-form";
 	}
 
 	// ==============================
@@ -62,12 +67,17 @@ public class ClaimController {
 	public String submitClaim(@ModelAttribute Claim claim, @RequestParam("file") MultipartFile file,
 			Authentication authentication, Model model) {
 
+		// Used by the UI even if upload fails.
+		Employee employee = employeeService.findByUsername(authentication.getName());
+		model.addAttribute("employeeName", employee.getName());
+		model.addAttribute("employeeCode", employee.getEmployeeCode());
+
 		try {
 			// 🔥 Get logged-in username
 			String username = authentication.getName();
 
 			// 🔥 Fetch employee using username
-			Employee employee = employeeService.findByUsername(username);
+			employee = employeeService.findByUsername(username);
 
 			// 🔥 Attach employee to claim
 			claim.setEmployee(employee);
@@ -80,22 +90,23 @@ public class ClaimController {
 		} catch (IOException e) {
 			e.printStackTrace();
 			model.addAttribute("error", "File upload failed!");
-			return "employee/submit";
+			return "claim-form";
 		}
 
-		return "redirect:/claims/dashboard";
+		return "redirect:/claims/status";
 	}
 
 	// ==============================
 	// 4. View Claim Status
 	// ==============================
 	@GetMapping("/status")
-	public String viewStatus(Model model) {
+	public String viewStatus(Authentication authentication, Model model) {
 
-		List<Claim> claims = claimService.getAllClaims();
+		Employee employee = employeeService.findByUsername(authentication.getName());
+		List<Claim> claims = claimService.getClaimsByEmployee(employee.getId());
 		model.addAttribute("claims", claims);
 
-		return "employee/status";
+		return "claim-status";
 	}
 
 	// ==============================

@@ -14,9 +14,9 @@ public class EmailController {
 	private EmailService emailService;
 
 	@GetMapping("/send-email")
-	public String sendEmail(Model model) {
+	public String sendEmail(Model model) throws Exception {
 
-		emailService.sendEmail("kushal.bhadra.project@gmail.com", // receiver
+		emailService.sendHtmlEmail("kushal.bhadra.project@gmail.com", // receiver
 				"Test Email", "Hello Kushal, Email is working!");
 
 		model.addAttribute("msg", "Email sent successfully!");

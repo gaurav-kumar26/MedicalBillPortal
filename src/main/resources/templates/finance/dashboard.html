@@ -22,8 +22,8 @@
             <thead class="table-dark">
                 <tr>
                     <th>Claim ID</th>
-                    <th>Patient Name</th>
-                    <th>Amount</th>
+                    <th>Employee Name</th>
+                    <th>Total Amount</th>
                     <th>Approved Amount</th>
                     <th>Status</th>
                     <th>Action</th>
@@ -34,10 +34,17 @@
 
                 <tr th:each="c : ${claims}">
 
-                    <td th:text="${c.id}"></td>
-                    <td th:text="${c.patientName}"></td>
-                    <td th:text="${c.amount}"></td>
+                    <!-- 🔥 Better ID -->
+                    <td th:text="${c.claimId}"></td>
+
+                    <!-- 🔥 FIXED -->
+                    <td th:text="${c.employee != null ? c.employee.name : 'N/A'}"></td>
+
+                    <!-- 🔥 FIXED -->
+                    <td th:text="${c.totalAmount}"></td>
+
                     <td th:text="${c.approvedAmount}"></td>
+
                     <td th:text="${c.status}"></td>
 
                     <td>

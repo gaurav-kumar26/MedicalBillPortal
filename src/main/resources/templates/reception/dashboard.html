@@ -35,22 +35,29 @@
                 <tr th:each="c : ${claims}">
 
                     <td th:text="${c.id}"></td>
-                    <td th:text="${c.employee.name}"></td>
+                    <td th:text="${c.employee != null ? c.employee.name : 'N/A'}"></td>
                     <td th:text="${c.gstNumber}"></td>
                     <td th:text="${c.totalAmount}"></td>
                     <td th:text="${c.status}"></td>
 
                     <td>
 
-                        <!-- VERIFY BUTTON -->
+                        <!-- 🔥 UPDATED FORM -->
                         <form th:action="@{'/reception/verify/' + ${c.id}}"
-                              method="post"
-                              style="display:inline;">
+                              method="post">
+
+                            
+
+                            <!-- Hard Copy Status -->
+                            <select name="received"
+                                    class="form-control mb-1">
+                                <option value="true">Hard Copy Received</option>
+                                <option value="false">Not Received</option>
+                            </select>
 
                             <button type="submit"
-                                    class="btn btn-success btn-sm"
-                                    onclick="return confirm('Verify this claim?')">
-                                Verify
+                                    class="btn btn-primary btn-sm w-100">
+                                Submit
                             </button>
 
                         </form>

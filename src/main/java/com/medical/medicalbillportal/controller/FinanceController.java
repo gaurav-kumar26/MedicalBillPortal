@@ -5,11 +5,13 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.medical.medicalbillportal.entity.Claim;
 import com.medical.medicalbillportal.service.ClaimService;
-import com.medical.medicalbillportal.service.EmailService;
 
 @Controller
 @RequestMapping("/finance")
@@ -18,48 +20,29 @@ public class FinanceController {
 	@Autowired
 	private ClaimService claimService;
 
-	@Autowired
-	private EmailService emailService; // 🔥 ADD THIS
-
-	// Show approved claims for payment
-	@GetMapping("/payment")
-	public String payment(Model model) {
+	// ==============================
+	// 1. Show Approved Claims
+	// ==============================
+	@GetMapping("/dashboard") // 🔥 FIXED
+	public String dashboard(Model model) {
 
 		List<Claim> claims = claimService.getClaimsByStatus("MEDICAL_APPROVED");
 
 		model.addAttribute("claims", claims);
 
-		return "finance/payment";
+		return "finance-dashboard";
 	}
 
-	// Mark as paid + send email
+	// ==============================
+	// 2. Mark as Paid
+	// ==============================
 	@PostMapping("/pay/{id}")
-    public String pay(@PathVariable Long id) throws Exception {
+	public String pay(@PathVariable Long id) {
 
-        // 🔥 get claim object
-        Claim claim = claimService.markAsPaid(id);
+		claimService.markAsPaid(id);
 
-        // 🔥 HTML email content
-        String html = """
-            <h2 style='color:green;'>Payment Successful</h2>
-            <p>Your medical claim has been processed.</p>
-            <p><b>Claim ID:</b> """ + claim.getId() + """</p>
-            <p>Amount credited to your account.</p>
-            <br>
-            <p>Thanks,<br>Medical Portal Team</p>
-        """;
+		System.out.println("Payment done for claim: " + id); // debug
 
-        // 🔥 file path
-        String filePath = "uploads/bills/" + claim.getBillPath();
-
-        // 🔥 send email with attachment
-        emailService.sendEmailWithAttachment(
-                claim.getEmployeeEmail(),
-                "Payment Successful",
-                html,
-                filePath
-        );
-
-        return "redirect:/finance/payment";
-    }
+		return "redirect:/finance/dashboard"; // 🔥 FIXED
+	}
 }
