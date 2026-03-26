@@ -2,47 +2,55 @@ package com.medical.medicalbillportal.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http
-            .csrf(csrf -> csrf.disable())
+		http.csrf(csrf -> csrf.disable())
 
-            .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
-                    .requestMatchers("/admin/**").hasRole("ADMIN")
-                    .requestMatchers("/reception/**").hasRole("RECEPTION")
-                    .requestMatchers("/medical/**").hasRole("MEDICAL")
-                    .requestMatchers("/finance/**").hasRole("FINANCE")
-                    .requestMatchers("/claims/**").hasRole("EMPLOYEE")
-                    .anyRequest().authenticated()
-            )
+				.authorizeHttpRequests(auth -> auth
 
-            .formLogin(form -> form
-                    .loginPage("/login")
-                    .defaultSuccessUrl("/dashboard", true)
-                    .permitAll()
-            )
+						// ✅ Allow login pages
+						.requestMatchers("/", "/home", "/access-denied", "/employee/login", "/staff/login", "/login",
+								"/css/**", "/js/**", "/images/**", "/uploads/**")
+						.permitAll()
 
-            .logout(logout -> logout
-                    .logoutSuccessUrl("/login?logout")
-                    .permitAll()
-            );
+						// ✅ Role-based access
+						.requestMatchers("/admin/**").hasRole("ADMIN")
+						.requestMatchers("/reception/**").hasRole("RECEPTION")
+						.requestMatchers("/medical/**").hasRole("MEDICAL")
+						.requestMatchers("/finance/**").hasRole("FINANCE")
+						.requestMatchers("/employee/**").hasAnyRole("EMPLOYEE", "ADMIN")
+						.requestMatchers("/claims/**").hasAnyRole("EMPLOYEE", "ADMIN")
 
-        return http.build();
-    }
+						.anyRequest().authenticated())
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+				.formLogin(form -> form
+						// ✅ Default login page
+						.loginPage("/employee/login")
+
+						// ✅ IMPORTANT (must match your form action)
+						.loginProcessingUrl("/login")
+
+						// ✅ After login redirect
+						.defaultSuccessUrl("/dashboard", true)
+
+						.permitAll())
+
+				.exceptionHandling(ex -> ex.accessDeniedPage("/access-denied"))
+				.logout(logout -> logout.logoutSuccessUrl("/employee/login?logout").permitAll());
+
+		return http.build();
+	}
+
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
+	}
 }

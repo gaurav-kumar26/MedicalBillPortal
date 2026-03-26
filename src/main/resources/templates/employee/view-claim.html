@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Claim Details</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+	<style>
+		body { background: #f4f6fb; }
+		.card-soft { border: 0; border-radius: 18px; box-shadow: 0 12px 35px rgba(0,0,0,0.06); }
+		.kv { font-size: 0.95rem; }
+	</style>
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="d-flex">
+	<div th:replace="fragments/sidebar :: sidebar"></div>
+
+	<main class="flex-grow-1 p-4">
+		<div class="container-fluid">
+			<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+				<h2 class="fw-bold mb-0">Claim Details</h2>
+				<a th:href="@{/claims/status}" class="btn btn-outline-secondary btn-sm fw-semibold">Back</a>
+			</div>
+
+			<div class="card card-soft p-4">
+				<div class="row g-3">
+					<div class="col-md-6">
+						<div class="kv mb-2"><strong>Claim ID:</strong> <span th:text="${claim.claimId}">CLM-XXXX</span></div>
+						<div class="kv mb-2"><strong>Employee:</strong> <span th:text="${claim.employee != null ? claim.employee.name : 'N/A'}">N/A</span></div>
+						<div class="kv mb-2"><strong>GST Number:</strong> <span th:text="${claim.gstNumber}">-</span></div>
+						<div class="kv mb-2"><strong>Total Amount:</strong> <span th:text="${claim.totalAmount}">0</span></div>
+					</div>
+
+					<div class="col-md-6">
+						<div class="kv mb-2"><strong>Status:</strong> <span th:text="${claim.status}">PENDING</span></div>
+						<div class="kv mb-2"><strong>Approved Amount:</strong> <span th:text="${claim.approvedAmount != null ? claim.approvedAmount : 0}">0</span></div>
+						<div class="kv mb-2"><strong>Remarks:</strong> <span th:text="${claim.remarks != null ? claim.remarks : '-'}">-</span></div>
+					</div>
+				</div>
+
+				<hr class="my-4" />
+
+				<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+					<h5 class="mb-0">Uploaded Bill</h5>
+					<a th:if="${claim.billPath != null}" th:href="@{'/uploads/bills/' + ${claim.billPath}}" target="_blank" class="btn btn-sm btn-primary fw-semibold">
+						<i class="bi bi-eye me-2"></i>View PDF
+					</a>
+				</div>
+
+				<div th:if="${claim.billPath == null}" class="text-muted small">No bill uploaded.</div>
+
+				<div th:if="${claim.items != null}">
+					<hr class="my-4" />
+					<h5 class="mb-3">Claim Items</h5>
+					<div class="table-responsive">
+						<table class="table table-bordered align-middle mb-0">
+							<thead class="table-light">
+							<tr>
+								<th>Item</th>
+								<th>Qty</th>
+								<th>Price</th>
+								<th>Approved Qty</th>
+								<th>Status</th>
+							</tr>
+							</thead>
+							<tbody>
+							<tr th:each="it : ${claim.items}">
+								<td th:text="${it.itemName}">Item</td>
+								<td th:text="${it.quantity}">0</td>
+								<td th:text="${it.price}">0</td>
+								<td th:text="${it.approvedQuantity}">0</td>
+								<td th:text="${it.status}">-</td>
+							</tr>
+							<tr th:if="${#lists.isEmpty(claim.items)}">
+								<td colspan="5" class="text-center text-muted py-3">No items found.</td>
+							</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

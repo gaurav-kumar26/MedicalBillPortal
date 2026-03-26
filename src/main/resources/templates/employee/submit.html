@@ -9,31 +9,31 @@
 <div class="container mt-5">
     <h2>Submit Medical Claim</h2>
 
-    <form th:action="@{/employee/submit}" 
+    <!-- 🔥 FIXED ACTION URL -->
+    <form th:action="@{/claims/submit}" 
           th:object="${claim}" 
           method="post" 
           enctype="multipart/form-data">
 
-        <div class="mb-3">
-            <label>Patient Name</label>
-            <input type="text" th:field="*{patientName}" class="form-control" required>
-        </div>
-
-        <div class="mb-3">
-            <label>Hospital Name</label>
-            <input type="text" th:field="*{hospitalName}" class="form-control" required>
-        </div>
-
-        <div class="mb-3">
-            <label>Total Amount</label>
-            <input type="number" th:field="*{totalAmount}" class="form-control" required>
-        </div>
-
+        <!-- GST Number -->
         <div class="mb-3">
             <label>GST Number</label>
             <input type="text" th:field="*{gstNumber}" class="form-control" required>
         </div>
 
+        <!-- Total Amount -->
+        <div class="mb-3">
+            <label>Total Amount</label>
+            <input type="number" th:field="*{totalAmount}" class="form-control" required>
+        </div>
+
+        <!-- Remarks -->
+        <div class="mb-3">
+            <label>Remarks</label>
+            <textarea th:field="*{remarks}" class="form-control"></textarea>
+        </div>
+
+        <!-- File Upload -->
         <div class="mb-3">
             <label>Upload Bill</label>
             <input type="file" name="file" class="form-control" required>

@@ -12,19 +12,15 @@ import com.medical.medicalbillportal.entity.Employee;
 @Repository
 public interface ClaimRepository extends JpaRepository<Claim, Long> {
 
-    // Find claims of a particular employee
-    List<Claim> findByEmployee(Employee employee);
+	// 🔹 Find claims of a particular employee
+	List<Claim> findByEmployee(Employee employee);
 
-    // Find claims by employee id
-    List<Claim> findByEmployeeId(Long employeeId);
+	// 🔹 Find claims by employee id
+	List<Claim> findByEmployeeId(Long employeeId);
 
-    // Find claims by status
-    List<Claim> findByStatus(String status);
+	// 🔹 Find claims by status
+	List<Claim> findByStatus(String status);
 
-    // 🔥 NEW: Duplicate check (VERY IMPORTANT)
-    boolean existsByGstNumberAndClaimDateAndTotalAmount(
-            String gstNumber,
-            LocalDate claimDate,
-            Double totalAmount
-    );
+	// 🔥 Duplicate check
+	boolean existsByGstNumberAndClaimDateAndTotalAmount(String gstNumber, LocalDate claimDate, double totalAmount);
 }

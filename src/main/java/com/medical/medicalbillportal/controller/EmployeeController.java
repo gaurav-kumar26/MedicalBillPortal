@@ -24,25 +24,25 @@ public class EmployeeController {
     // Dashboard
     @GetMapping("/dashboard")
     public String dashboard() {
-        return "employee/dashboard";
+		return "employee-dashboard";
     }
 
     // Submit Form Page
     @GetMapping("/submit")
     public String showSubmitForm() {
-        return "employee/submit";
+		return "redirect:/claims/form";
     }
 
     // Handle Submit (dummy for now)
     @PostMapping("/submit")
     public String submitClaim() {
-        return "redirect:/employee/status";
+		return "redirect:/claims/status";
     }
 
     // Status Page
     @GetMapping("/status")
     public String showStatus() {
-        return "employee/status";
+		return "redirect:/claims/status";
     }
 
 

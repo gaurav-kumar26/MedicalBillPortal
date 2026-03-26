@@ -23,19 +23,21 @@
 
         <tbody>
             <tr th:each="c : ${claims}">
-                <td th:text="${c.claimId}"></td>
-                <td th:text="${c.patientName}"></td>
-                <td th:text="${c.totalAmount}"></td>
-                <td th:text="${c.gstNumber}"></td>
-                <td th:text="${c.status}"></td>
+    <td th:text="${c.claimId}"></td>
 
-                <!-- 🔥 View Bill -->
-                <td>
-                    <a th:href="@{'/uploads/bills/' + ${c.billPath}}" target="_blank">
-                        View
-                    </a>
-                </td>
-            </tr>
+    <!-- 🔥 FIXED -->
+    <td th:text="${c.employee != null ? c.employee.name : 'N/A'}"></td>
+
+    <td th:text="${c.totalAmount}"></td>
+    <td th:text="${c.gstNumber}"></td>
+    <td th:text="${c.status}"></td>
+
+    <td>
+        <a th:href="@{'/uploads/bills/' + ${c.billPath}}" target="_blank">
+            View
+        </a>
+    </td>
+</tr>
         </tbody>
     </table>
 

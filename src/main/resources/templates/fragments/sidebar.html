@@ -1,25 +1,45 @@
-<div th:fragment="sidebar">
+<div xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="sidebar">
 
-    <div class="bg-light p-3" style="height: 100vh;">
+    <div class="bg-white border-end p-3" style="width: 260px; min-height: 100vh;">
+        <h5 class="text-muted mb-3">Modules</h5>
 
-        <h5>Menu</h5>
+        <ul class="nav flex-column gap-2">
 
-        <ul class="nav flex-column">
-
-            <li class="nav-item">
-                <a class="nav-link" href="/employee/dashboard">Dashboard</a>
+            <!-- Employee -->
+            <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
+                <a class="nav-link" href="/employee/dashboard">Employee Dashboard</a>
+            </li>
+            <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
+                <a class="nav-link" href="/claims/form">Submit Claim</a>
+            </li>
+            <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
+                <a class="nav-link" href="/claims/status">Claim Status</a>
             </li>
 
-            <li class="nav-item">
-                <a class="nav-link" href="/employee/submit">Submit Claim</a>
+            <!-- Admin -->
+            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                <a class="nav-link" href="/admin/dashboard">Admin Control</a>
+            </li>
+            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                <a class="nav-link" href="/employee/all">Manage Employees</a>
             </li>
 
-            <li class="nav-item">
-                <a class="nav-link" href="/employee/status">View Status</a>
+            <!-- Reception -->
+            <li class="nav-item" sec:authorize="hasRole('RECEPTION')">
+                <a class="nav-link" href="/reception/dashboard">Reception</a>
+            </li>
+
+            <!-- Medical -->
+            <li class="nav-item" sec:authorize="hasRole('MEDICAL')">
+                <a class="nav-link" href="/medical/dashboard">Medical Officer</a>
+            </li>
+
+            <!-- Finance -->
+            <li class="nav-item" sec:authorize="hasRole('FINANCE')">
+                <a class="nav-link" href="/finance/dashboard">Finance</a>
             </li>
 
         </ul>
-
     </div>
 
 </div>

@@ -1,9 +1,20 @@
 package com.medical.medicalbillportal.entity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,35 +24,39 @@ import lombok.Setter;
 @Setter
 public class Claim {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    // 🔥 NEW: Public Claim ID (for tracking)
-    @Column(unique = true, nullable = false, updatable = false)
-    private String claimId;
+	@Column(unique = true, nullable = false, updatable = false)
+	private String claimId;
 
-    @ManyToOne
-    private Employee employee;
+	@ManyToOne
+	private Employee employee;
 
-    private LocalDate claimDate;
-    private Double totalAmount;
-    private Double approvedAmount;
+	private LocalDate claimDate;
+	private Double totalAmount;
+	private Double approvedAmount;
 
-    private String status;
+	private String status;
 
-    private String billPath;
+	private String billPath;
 
-    // 🔥 NEW: GST Number
-    private String gstNumber;
+	private String gstNumber;
 
-    @Column(length = 2000)
-    private String remarks;
+	@Column(length = 2000)
+	private String remarks;
 
-    // 🔥 AUTO GENERATE CLAIM ID + DEFAULT STATUS
-    @PrePersist
-    public void generateClaimId() {
-        this.claimId = "CLM-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        this.status = "PENDING";
-    }
+	// Finance processed timestamp (set by finance module)
+	private LocalDateTime processedAt;
+
+	// 🔥 ADD THIS
+	@OneToMany(mappedBy = "claim", cascade = CascadeType.ALL)
+	private List<ClaimItem> items;
+
+	@PrePersist
+	public void generateClaimId() {
+		this.claimId = "CLM-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+		this.status = "PENDING";
+	}
 }

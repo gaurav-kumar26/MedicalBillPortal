@@ -1,3 +1,7 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <div th:fragment="header">
 
     <!-- 🔥 Custom Style -->
@@ -21,7 +25,7 @@
         <div class="container">
 
             <!-- Logo -->
-            <a class="navbar-brand fw-bold text-warning" href="#">
+            <a class="navbar-brand fw-bold text-warning">
                 💊 Medical Portal
             </a>
 
@@ -35,61 +39,78 @@
 
                 <ul class="navbar-nav ms-auto align-items-center gap-2">
 
-                    <!-- Employee -->
-                    <li class="nav-item">
+                    <!-- 👤 EMPLOYEE -->
+                    <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
                         <a class="btn btn-outline-light btn-sm px-3 
                            [[${#httpServletRequest.requestURI.contains('/employee')} ? 'active-link' : '']]"
-                           href="/employee/dashboard">
+                           th:href="@{/employee/dashboard}">
                             👤 Employee
                         </a>
                     </li>
 
-                    <!-- Medical -->
-                    <li class="nav-item">
+                    <!-- 🧾 RECEPTION -->
+                    <li class="nav-item" sec:authorize="hasRole('RECEPTION')">
+                        <a class="btn btn-outline-warning btn-sm px-3 
+                           [[${#httpServletRequest.requestURI.contains('/reception')} ? 'active-link' : '']]"
+                           th:href="@{/reception/dashboard}">
+                            🧾 Reception
+                        </a>
+                    </li>
+
+                    <!-- 🏥 MEDICAL -->
+                    <li class="nav-item" sec:authorize="hasRole('MEDICAL')">
                         <a class="btn btn-outline-info btn-sm px-3 
                            [[${#httpServletRequest.requestURI.contains('/medical')} ? 'active-link' : '']]"
-                           href="/medical/dashboard">
+                           th:href="@{/medical/dashboard}">
                             🏥 Medical
                         </a>
                     </li>
 
-                    <!-- 🔥 Profile Dropdown -->
-                    <li class="nav-item dropdown">
+                    <!-- 💰 FINANCE -->
+                    <li class="nav-item" sec:authorize="hasRole('FINANCE')">
+                        <a class="btn btn-outline-success btn-sm px-3 
+                           [[${#httpServletRequest.requestURI.contains('/finance')} ? 'active-link' : '']]"
+                           th:href="@{/finance/dashboard}">
+                            💰 Finance
+                        </a>
+                    </li>
+
+                    <!-- 👤 PROFILE -->
+                    <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                         <a class="btn btn-outline-warning btn-sm dropdown-toggle px-3"
                            href="#" role="button" data-bs-toggle="dropdown">
-
                             👤 Profile
                         </a>
 
                         <ul class="dropdown-menu dropdown-menu-end">
 
+                            <!-- Username -->
                             <li>
-                                <a class="dropdown-item" href="#">
-                                    👤 My Profile
-                                </a>
-                            </li>
-
-                            <li>
-                                <a class="dropdown-item" href="#">
-                                    ⚙ Settings
-                                </a>
+                                <span class="dropdown-item">
+                                    👤 <span sec:authentication="name"></span>
+                                </span>
                             </li>
 
                             <li><hr class="dropdown-divider"></li>
 
+                            <!-- Logout -->
                             <li>
-                                <a class="dropdown-item text-danger" href="/auth/employee-login">
-                                    🚪 Logout
-                                </a>
+                                <form th:action="@{/logout}" method="post">
+                                    <button class="dropdown-item text-danger">
+                                        🚪 Logout
+                                    </button>
+                                </form>
                             </li>
 
                         </ul>
                     </li>
 
                 </ul>
+
             </div>
 
         </div>
     </nav>
 
 </div>
+</html>

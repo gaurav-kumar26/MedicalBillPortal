@@ -46,3 +46,4 @@ build/
 # JVM crash logs
 hs_err_pid*
 replay_pid*
+/.apt_generated_tests/
