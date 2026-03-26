@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.medical.medicalbillportal.entity.Claim;
+import com.medical.medicalbillportal.entity.ClaimItem;
 import com.medical.medicalbillportal.service.ClaimService;
 
 @Controller
@@ -86,6 +88,59 @@ public class MedicalController {
 	public String sendBackToReception(@PathVariable Long id) {
 		// Put claim back for recheck (sets status to ON_HOLD via existing service logic)
 		claimService.verifyClaim(id, false);
+		return "redirect:/medical/dashboard";
+	}
+
+	// ==============================
+	// 6. Process Claim Items
+	// ==============================
+	@PostMapping("/process-items/{id}")
+	public String processItems(@PathVariable Long id, @RequestParam("itemId") List<Long> itemIds,
+			@RequestParam("covered") List<Boolean> covered, @RequestParam String remarks, RedirectAttributes ra) {
+
+		try {
+			Claim claim = claimService.getClaimById(id);
+			if (claim == null || claim.getItems() == null || claim.getItems().isEmpty()) {
+				ra.addFlashAttribute("error", "No claim items found to review. Please ask employee to resubmit with items.");
+				return "redirect:/medical/dashboard";
+			}
+
+			// Map coverage decisions into existing ClaimItems
+			List<ClaimItem> items = claim.getItems();
+			for (int i = 0; i < itemIds.size() && i < covered.size(); i++) {
+				Long itemId = itemIds.get(i);
+				Boolean isCovered = covered.get(i);
+				if (itemId == null || isCovered == null) {
+					continue;
+				}
+
+				for (ClaimItem item : items) {
+					if (itemId.equals(item.getId())) {
+						item.setCovered(isCovered);
+
+						// If amount is not provided, legacy approvedQuantity-based logic is used.
+						if (item.getAmount() == null) {
+							item.setApprovedQuantity(isCovered ? item.getQuantity() : 0);
+						}
+						break;
+					}
+				}
+			}
+
+			Claim processed = claimService.processMedicalItems(id, items);
+			Double approvedAmount = processed.getApprovedAmount() != null ? processed.getApprovedAmount() : 0.0;
+
+			// Keep workflow consistent with Finance module expectations.
+			if (approvedAmount > 0) {
+				claimService.approveClaim(id, approvedAmount, remarks);
+			} else {
+				claimService.rejectClaim(id, remarks);
+			}
+
+			ra.addFlashAttribute("success", "Medical review saved successfully.");
+		} catch (RuntimeException ex) {
+			ra.addFlashAttribute("error", "Unable to process medical review. Please try again.");
+		}
 		return "redirect:/medical/dashboard";
 	}
 }

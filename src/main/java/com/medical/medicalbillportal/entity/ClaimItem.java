@@ -4,6 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,12 +21,22 @@ public class ClaimItem {
 
 	private String itemName; // Tablet / Operation
 
+	// Enterprise fields (required by new UI)
+	private Double amount; // Total amount for this line item
+
+	@Enumerated(EnumType.STRING)
+	private ClaimItemType type; // MEDICINE / OPERATION
+
+	private boolean covered; // Covered by policy
+
+	// Legacy fields (kept for backward compatibility with existing UI/templates/services)
 	private int quantity;
 	private double price;
 
 	private int approvedQuantity;
 
-	private String status; // APPROVED / REJECTED / PARTIAL
+	@Enumerated(EnumType.STRING)
+	private ItemStatus status; // APPROVED / REJECTED / PARTIAL
 
 	private String reason;
 

@@ -33,6 +33,9 @@
 					</form>
 				</div>
 
+				<div th:if="${error}" class="alert alert-danger py-2 mb-3" th:text="${error}">Error</div>
+				<div th:if="${success}" class="alert alert-success py-2 mb-3" th:text="${success}">Success</div>
+
 				<div class="table-responsive">
 					<table class="table table-bordered align-middle table-hover mb-0">
 						<thead class="table-light">
@@ -42,7 +45,7 @@
 							<th>Total Amount</th>
 							<th>GST</th>
 							<th>Bill</th>
-							<th>Actions</th>
+							<th>Item Review</th>
 						</tr>
 						</thead>
 						<tbody>
@@ -59,7 +62,61 @@
 							</td>
 							<td style="min-width: 420px;">
 								<div class="d-grid gap-2">
-									<div class="card p-3 bg-white">
+
+									<!-- Item-based approval (preferred) -->
+									<div th:if="${c.items != null and #lists.size(c.items) > 0}" class="card p-3 bg-white">
+										<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+											<div class="fw-semibold text-primary">
+												<i class="bi bi-list-check me-2"></i>Approve / Reject Items
+											</div>
+											<span class="text-muted small">
+												Items: <span th:text="${#lists.size(c.items)}">0</span>
+											</span>
+										</div>
+
+										<form th:action="@{'/medical/process-items/' + ${c.id}}" method="post" class="items-form">
+											<div class="table-responsive mb-2">
+												<table class="table table-sm table-bordered align-middle mb-0">
+													<thead class="table-light">
+													<tr>
+														<th>Item</th>
+														<th>Qty</th>
+														<th>Type</th>
+														<th>Coverage</th>
+													</tr>
+													</thead>
+													<tbody>
+													<tr th:each="it, stat : ${c.items}">
+														<td th:text="${it.itemName}">Medicine</td>
+														<td th:text="${it.quantity}">0</td>
+														<td th:text="${it.type != null ? it.type : '-'}">-</td>
+														<td style="min-width: 180px;">
+															<input type="hidden" name="itemId" th:value="${it.id}"/>
+															<select name="covered" class="form-select form-select-sm covered-select"
+																	>
+																<option value="true" th:selected="${it.covered}">Covered</option>
+																<option value="false" th:selected="${!it.covered}">Not Covered</option>
+															</select>
+														</td>
+													</tr>
+													</tbody>
+												</table>
+											</div>
+
+											<div class="mb-2">
+												<label class="form-label fw-semibold mb-1">Remarks</label>
+												<input type="text" name="remarks" class="form-control form-control-sm" placeholder="e.g., Not covered by policy / Invalid claim" required />
+											</div>
+
+											<button type="submit" class="btn btn-success btn-sm fw-semibold w-100"
+													onclick="return confirm('Process selected item coverages?');">
+												Process Items
+											</button>
+										</form>
+									</div>
+
+									<!-- Fallback: legacy claim-level actions -->
+									<div th:if="${c.items == null or #lists.size(c.items) == 0}" class="card p-3 bg-white">
 										<div class="fw-semibold mb-2 text-success">
 											<i class="bi bi-check2-circle me-2"></i>Approve Payment Amount
 										</div>
@@ -74,9 +131,7 @@
 												<button class="btn btn-success btn-sm fw-semibold w-100" type="submit">Approve</button>
 											</div>
 										</form>
-									</div>
-
-									<div class="card p-3 bg-white">
+										<hr class="my-3"/>
 										<div class="fw-semibold mb-2 text-danger">
 											<i class="bi bi-x-circle me-2"></i>Reject Claim
 										</div>

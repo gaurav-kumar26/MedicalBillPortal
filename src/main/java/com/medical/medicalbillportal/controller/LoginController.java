@@ -11,6 +11,11 @@ public class LoginController {
 		return "home";
 	}
 
+	@GetMapping("/access-denied")
+	public String accessDenied() {
+		return "access-denied";
+	}
+
 	// Employee Login Page
 	@GetMapping("/employee/login")
 	public String employeeLogin() {

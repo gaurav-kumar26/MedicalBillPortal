@@ -17,8 +17,8 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 
 						// ✅ Allow login pages
-						.requestMatchers("/", "/home", "/employee/login", "/staff/login", "/login", "/css/**", "/js/**",
-								"/images/**", "/uploads/**")
+						.requestMatchers("/", "/home", "/access-denied", "/employee/login", "/staff/login", "/login",
+								"/css/**", "/js/**", "/images/**", "/uploads/**")
 						.permitAll()
 
 						// ✅ Role-based access
@@ -43,6 +43,7 @@ public class SecurityConfig {
 
 						.permitAll())
 
+				.exceptionHandling(ex -> ex.accessDeniedPage("/access-denied"))
 				.logout(logout -> logout.logoutSuccessUrl("/employee/login?logout").permitAll());
 
 		return http.build();

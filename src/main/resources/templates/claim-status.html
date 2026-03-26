@@ -28,15 +28,18 @@
 			</div>
 
 			<div class="card card-soft p-4">
+				<div th:if="${error}" class="alert alert-danger py-2 mb-3" th:text="${error}">Error</div>
+				<div th:if="${success}" class="alert alert-success py-2 mb-3" th:text="${success}">Success</div>
+
 				<div class="table-responsive">
 					<table class="table table-bordered align-middle table-hover mb-0">
 						<thead class="table-light">
 						<tr>
 							<th>Claim ID</th>
 							<th>Status</th>
-							<th>Remarks</th>
 							<th>Approved Amount</th>
-							<th>Rejection Reason</th>
+							<th>Remarks History</th>
+							<th>Timeline</th>
 							<th>Bill</th>
 						</tr>
 						</thead>
@@ -46,6 +49,8 @@
 							<td>
 								<span class="badge rounded-pill status-pill"
 									  th:classappend="${c.status == 'FINANCE_PAID' ? 'bg-success' : ''}"
+									  th:classappend="${c.status == 'FINANCE_REJECTED' ? 'bg-danger' : ''}"
+									  th:classappend="${c.status == 'FINANCE_HOLD' ? 'bg-warning text-dark' : ''}"
 									  th:classappend="${c.status != 'FINANCE_PAID' and c.status == 'MEDICAL_APPROVED' ? 'bg-primary' : ''}"
 									  th:classappend="${c.status == 'MEDICAL_REJECTED' ? 'bg-danger' : ''}"
 									  th:classappend="${c.status == 'RECEPTION_VERIFIED' ? 'bg-info' : ''}"
@@ -54,9 +59,45 @@
 									STATUS
 								</span>
 							</td>
-							<td th:text="${c.remarks}">-</td>
 							<td th:text="${c.approvedAmount != null ? c.approvedAmount : 0}">0</td>
-							<td th:text="${c.status == 'MEDICAL_REJECTED' ? c.remarks : '-'}">-</td>
+							<td>
+								<div th:if="${c.remarks != null and !#strings.isEmpty(c.remarks)}">
+									<ul class="mb-0 small">
+										<li th:each="line : ${#strings.arraySplit(c.remarks, '\n')}"
+											th:if="${!#strings.isEmpty(line)}"
+											th:text="${line}">Remark</li>
+									</ul>
+								</div>
+								<span th:if="${c.remarks == null or #strings.isEmpty(c.remarks)}" class="text-muted small">-</span>
+							</td>
+							<td style="min-width: 260px;">
+								<div class="small">
+									<div class="d-flex align-items-center gap-2 mb-1">
+										<span class="badge bg-secondary">Submitted</span>
+										<span class="text-muted">→</span>
+										<span class="badge"
+											  th:classappend="${c.status == 'RECEPTION_VERIFIED' or c.status == 'MEDICAL_APPROVED' or c.status == 'MEDICAL_REJECTED' or c.status == 'FINANCE_PAID' or c.status == 'FINANCE_HOLD' or c.status == 'FINANCE_REJECTED' ? 'bg-info' : 'bg-light text-dark border'}">
+											Reception
+										</span>
+									</div>
+									<div class="d-flex align-items-center gap-2 mb-1">
+										<span class="badge"
+											  th:classappend="${c.status == 'MEDICAL_APPROVED' or c.status == 'FINANCE_PAID' or c.status == 'FINANCE_HOLD' or c.status == 'FINANCE_REJECTED' ? 'bg-primary' : (c.status == 'MEDICAL_REJECTED' ? 'bg-danger' : 'bg-light text-dark border')}">
+											Medical
+										</span>
+										<span class="text-muted">→</span>
+										<span class="badge"
+											  th:classappend="${c.status == 'FINANCE_PAID' ? 'bg-success' : (c.status == 'FINANCE_HOLD' ? 'bg-warning text-dark' : (c.status == 'FINANCE_REJECTED' ? 'bg-danger' : 'bg-light text-dark border'))}">
+											Finance
+										</span>
+										<span class="text-muted">→</span>
+										<span class="badge"
+											  th:classappend="${c.status == 'FINANCE_PAID' ? 'bg-success' : 'bg-light text-dark border'}">
+											Paid
+										</span>
+									</div>
+								</div>
+							</td>
 							<td>
 								<a th:if="${c.billPath != null}" th:href="@{'/uploads/bills/' + ${c.billPath}}" target="_blank" class="btn btn-sm btn-outline-secondary">
 									View

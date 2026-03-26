@@ -1,6 +1,7 @@
 package com.medical.medicalbillportal.entity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,6 +46,9 @@ public class Claim {
 
 	@Column(length = 2000)
 	private String remarks;
+
+	// Finance processed timestamp (set by finance module)
+	private LocalDateTime processedAt;
 
 	// 🔥 ADD THIS
 	@OneToMany(mappedBy = "claim", cascade = CascadeType.ALL)

@@ -65,7 +65,11 @@ public class ClaimController {
 	// ==============================
 	@PostMapping("/submit")
 	public String submitClaim(@ModelAttribute Claim claim, @RequestParam("file") MultipartFile file,
-			Authentication authentication, Model model) {
+			@RequestParam(value = "reports", required = false) MultipartFile[] reports,
+			@RequestParam(value = "claimType", required = false) String claimType,
+			@RequestParam(value = "hospitalName", required = false) String hospitalName,
+			@RequestParam(value = "doctorName", required = false) String doctorName, Authentication authentication,
+			Model model) {
 
 		// Used by the UI even if upload fails.
 		Employee employee = employeeService.findByUsername(authentication.getName());
@@ -82,14 +86,39 @@ public class ClaimController {
 			// 🔥 Attach employee to claim
 			claim.setEmployee(employee);
 
+			// Map UI fields not present in the current Claim entity (store in remarks)
+			StringBuilder uiDetails = new StringBuilder();
+			if (claimType != null && !claimType.isBlank()) {
+				uiDetails.append("Claim Type: ").append(claimType).append("\n");
+			}
+			if (hospitalName != null && !hospitalName.isBlank()) {
+				uiDetails.append("Hospital: ").append(hospitalName).append("\n");
+			}
+			if (doctorName != null && !doctorName.isBlank()) {
+				uiDetails.append("Doctor: ").append(doctorName).append("\n");
+			}
+
+			if (uiDetails.length() > 0) {
+				String existingRemarks = claim.getRemarks() != null ? claim.getRemarks().trim() : "";
+				String suffix = uiDetails.toString().trim();
+				if (!existingRemarks.isEmpty()) {
+					claim.setRemarks(existingRemarks + "\n\n" + suffix);
+				} else {
+					claim.setRemarks(suffix);
+				}
+			}
+
 			// 🔥 Save claim + file
-			claimService.submitClaim(claim, file);
+			claimService.submitClaim(claim, file, reports);
 
 			System.out.println("Claim Submitted Successfully!");
 
 		} catch (IOException e) {
 			e.printStackTrace();
 			model.addAttribute("error", "File upload failed!");
+			return "claim-form";
+		} catch (RuntimeException e) {
+			model.addAttribute("error", e.getMessage());
 			return "claim-form";
 		}
 
