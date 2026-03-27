@@ -36,6 +36,7 @@ public class EmployeeService {
 
 	// 🔥 IMPORTANT (YOU NEED THIS)
 	public Employee findByUsername(String username) {
-		return employeeRepository.findByUserUsername(username);
+		return employeeRepository.findByEmployeeId(username)
+				.orElseThrow(() -> new RuntimeException("Employee not found for employeeId=" + username));
 	}
 }

@@ -1,144 +1,207 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>Finance Dashboard</title>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-	<style>
-		body { background: #f4f6fb; }
-		.card-soft { border: 0; border-radius: 18px; box-shadow: 0 12px 35px rgba(0,0,0,0.06); }
-	</style>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Finance Dashboard</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #f4f6fb;
+        }
+
+        .card-soft {
+            border: 0;
+            border-radius: 18px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.06);
+        }
+    </style>
 </head>
+
 <body>
+
+<!-- HEADER -->
 <div th:replace="fragments/header :: header"></div>
 
 <div class="d-flex">
-	<div th:replace="fragments/sidebar :: sidebar"></div>
 
-	<main class="flex-grow-1 p-4">
-		<div class="container-fluid">
-			<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-				<h2 class="fw-bold mb-0">Finance Module</h2>
-				<div class="text-muted">Approve payment and mark claims as paid</div>
-			</div>
+    <!-- SIDEBAR -->
+    <div th:replace="fragments/sidebar :: sidebar"></div>
 
-			<!-- Stats Cards -->
-			<div class="row g-3 mb-4">
-				<div class="col-md-3">
-					<div class="card border-0 shadow-sm text-white" style="border-radius: 18px; background:#0d6efd;">
-						<div class="card-body p-3">
-							<div class="fw-semibold">Total Claims</div>
-							<div class="fs-3 fw-bold" th:text="${totalClaims}">0</div>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-3">
-					<div class="card border-0 shadow-sm text-white" style="border-radius: 18px; background:#198754;">
-						<div class="card-body p-3">
-							<div class="fw-semibold">Approved</div>
-							<div class="fs-3 fw-bold" th:text="${approvedClaims}">0</div>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-3">
-					<div class="card border-0 shadow-sm text-dark" style="border-radius: 18px; background:#ffc107;">
-						<div class="card-body p-3">
-							<div class="fw-semibold">Pending</div>
-							<div class="fs-3 fw-bold" th:text="${pendingClaims}">0</div>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-3">
-					<div class="card border-0 shadow-sm text-white" style="border-radius: 18px; background:#dc3545;">
-						<div class="card-body p-3">
-							<div class="fw-semibold">Rejected</div>
-							<div class="fs-3 fw-bold" th:text="${rejectedClaims}">0</div>
-						</div>
-					</div>
-				</div>
-			</div>
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow-1 p-4">
+        <div class="container-fluid">
 
-			<div class="card card-soft p-4">
-				<h5 class="mb-3">Approved Claims (Medical Approved)</h5>
+            <!-- TITLE -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold mb-0">Finance Module</h2>
+                <div class="text-muted">Approve payment and mark claims as paid</div>
+            </div>
 
-				<div th:if="${error}" class="alert alert-danger py-2 mb-3" th:text="${error}">Error</div>
-				<div th:if="${success}" class="alert alert-success py-2 mb-3" th:text="${success}">Success</div>
+            <!-- STATS -->
+            <div class="row g-3 mb-4">
 
-				<div class="table-responsive">
-					<table class="table table-bordered align-middle table-hover mb-0 table-sm">
-						<thead class="table-light">
-						<tr>
-							<th>Claim ID</th>
-							<th>Employee Name</th>
-							<th>Bank Details</th>
-							<th>Total Amount</th>
-							<th>Approved Amount</th>
-							<th>Status</th>
-							<th>Actions</th>
-						</tr>
-						</thead>
-						<tbody>
-						<tr th:each="c : ${claims}">
-							<td th:text="${c.claimId}">CLM-XXXX</td>
-							<td th:text="${c.employee != null ? c.employee.name : 'N/A'}">N/A</td>
-							<td>
-								<div class="small">
-									<div><strong>A/C:</strong> <span th:text="${c.employee != null ? c.employee.bankAccount : '-'}">-</span></div>
-									<div><strong>IFSC:</strong> <span th:text="${c.employee != null ? c.employee.ifscCode : '-'}">-</span></div>
-								</div>
-							</td>
-							<td class="fw-semibold" th:text="${c.totalAmount}">0</td>
-							<td class="fw-bold text-success" th:text="${c.approvedAmount != null ? c.approvedAmount : 0}">0</td>
-							<td>
-								<span class="badge rounded-pill"
-									  th:classappend="${c.status == 'FINANCE_PAID' ? 'bg-success' : ''}"
-									  th:classappend="${c.status == 'FINANCE_REJECTED' ? 'bg-danger' : ''}"
-									  th:classappend="${c.status == 'FINANCE_HOLD' ? 'bg-warning text-dark' : ''}"
-									  th:classappend="${c.status == 'MEDICAL_APPROVED' ? 'bg-primary' : ''}"
-									  th:text="${c.status}">STATUS</span>
-							</td>
-							<td style="min-width: 360px;">
-								<div class="d-grid gap-2">
-									<form th:action="@{'/finance/approve/' + ${c.id}}" method="post">
-										<button type="submit" class="btn btn-success btn-sm fw-semibold w-100"
-												onclick="return confirm('Approve and process payment?');">
-											<i class="bi bi-cash-coin me-2"></i>Approve (Pay)
-										</button>
-									</form>
+                <div class="col-md-3">
+                    <div class="card text-white" style="border-radius:18px;background:#0d6efd;">
+                        <div class="card-body">
+                            <div>Total Claims</div>
+                            <div class="fs-3 fw-bold" th:text="${totalClaims}">0</div>
+                        </div>
+                    </div>
+                </div>
 
-									<form th:action="@{'/finance/hold/' + ${c.id}}" method="post" class="d-grid gap-2">
-										<input type="text" name="remarks" class="form-control form-control-sm"
-											   placeholder="Hold remarks (required)" required>
-										<button type="submit" class="btn btn-outline-warning btn-sm fw-semibold w-100">
-											Hold
-										</button>
-									</form>
+                <div class="col-md-3">
+                    <div class="card text-white" style="border-radius:18px;background:#198754;">
+                        <div class="card-body">
+                            <div>Approved</div>
+                            <div class="fs-3 fw-bold" th:text="${approvedClaims}">0</div>
+                        </div>
+                    </div>
+                </div>
 
-									<form th:action="@{'/finance/reject/' + ${c.id}}" method="post" class="d-grid gap-2">
-										<input type="text" name="remarks" class="form-control form-control-sm"
-											   placeholder="Rejection remarks (required)" required>
-										<button type="submit" class="btn btn-outline-danger btn-sm fw-semibold w-100">
-											Reject
-										</button>
-									</form>
-								</div>
-							</td>
-						</tr>
+                <div class="col-md-3">
+                    <div class="card text-dark" style="border-radius:18px;background:#ffc107;">
+                        <div class="card-body">
+                            <div>Pending</div>
+                            <div class="fs-3 fw-bold" th:text="${pendingClaims}">0</div>
+                        </div>
+                    </div>
+                </div>
 
-						<tr th:if="${#lists.isEmpty(claims)}">
-							<td colspan="7" class="text-center text-muted py-4">No approved claims found.</td>
-						</tr>
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-	</main>
+                <div class="col-md-3">
+                    <div class="card text-white" style="border-radius:18px;background:#dc3545;">
+                        <div class="card-body">
+                            <div>Rejected</div>
+                            <div class="fs-3 fw-bold" th:text="${rejectedClaims}">0</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TABLE -->
+            <div class="card card-soft p-4">
+
+                <h5 class="mb-3">Approved Claims (Medical Approved)</h5>
+
+                <!-- ALERTS -->
+                <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+                <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-hover align-middle">
+
+                        <thead class="table-light">
+                        <tr>
+                            <th>Claim ID</th>
+                            <th>Employee</th>
+                            <th>Bank Details</th>
+                            <th>Total</th>
+                            <th>Approved</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+
+                        <!-- DATA -->
+                        <tr th:each="c : ${claims}">
+
+                            <td th:text="${c.claimId}">CLM001</td>
+
+                            <td th:text="${c.employee != null ? c.employee.name : 'N/A'}"></td>
+
+                            <td>
+                                <div class="small">
+                                    <div><b>A/C:</b> <span th:text="${c.employee?.bankAccount}"></span></div>
+                                    <div><b>IFSC:</b> <span th:text="${c.employee?.ifscCode}"></span></div>
+                                </div>
+                            </td>
+
+                            <td th:text="${c.totalAmount}" class="fw-semibold"></td>
+
+                            <td th:text="${c.approvedAmount != null ? c.approvedAmount : 0}"
+                                class="fw-bold text-success"></td>
+
+                            <!-- ✅ FIXED STATUS -->
+                            <td>
+                                <span class="badge rounded-pill"
+                                      th:classappend="${'bg-' + 
+                                      (c.status == 'FINANCE_PAID' ? 'success' :
+                                       c.status == 'FINANCE_REJECTED' ? 'danger' :
+                                       c.status == 'FINANCE_HOLD' ? 'warning text-dark' :
+                                       c.status == 'MEDICAL_APPROVED' ? 'primary' : 'secondary')}"
+                                      th:text="${c.status}">
+                                </span>
+                            </td>
+
+                            <!-- ACTIONS -->
+                            <td style="min-width:300px;">
+
+                                <div class="d-grid gap-2">
+
+                                    <!-- APPROVE -->
+                                    <form th:action="@{'/finance/approve/' + ${c.id}}" method="post">
+                                        <button class="btn btn-success btn-sm w-100"
+                                                onclick="return confirm('Approve payment?')">
+                                            <i class="bi bi-cash"></i> Pay
+                                        </button>
+                                    </form>
+
+                                    <!-- HOLD -->
+                                    <form th:action="@{'/finance/hold/' + ${c.id}}" method="post">
+                                        <input type="text" name="remarks"
+                                               class="form-control form-control-sm"
+                                               placeholder="Hold remarks" required>
+                                        <button class="btn btn-warning btn-sm w-100 mt-1">
+                                            Hold
+                                        </button>
+                                    </form>
+
+                                    <!-- REJECT -->
+                                    <form th:action="@{'/finance/reject/' + ${c.id}}" method="post">
+                                        <input type="text" name="remarks"
+                                               class="form-control form-control-sm"
+                                               placeholder="Reject remarks" required>
+                                        <button class="btn btn-danger btn-sm w-100 mt-1">
+                                            Reject
+                                        </button>
+                                    </form>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        <!-- EMPTY -->
+                        <tr th:if="${#lists.isEmpty(claims)}">
+                            <td colspan="7" class="text-center text-muted">
+                                No claims found
+                            </td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
 </div>
 
+<!-- FOOTER -->
 <div th:replace="fragments/footer :: footer"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
