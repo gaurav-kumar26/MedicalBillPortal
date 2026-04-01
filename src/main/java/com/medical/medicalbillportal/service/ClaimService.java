@@ -17,10 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.medical.medicalbillportal.entity.Claim;
-import com.medical.medicalbillportal.entity.ClaimStatus;
 import com.medical.medicalbillportal.entity.ClaimItem;
-import com.medical.medicalbillportal.entity.ItemStatus;
+import com.medical.medicalbillportal.entity.ClaimStatus;
 import com.medical.medicalbillportal.entity.FinancePayment;
+import com.medical.medicalbillportal.entity.ItemStatus;
 import com.medical.medicalbillportal.repository.ClaimRepository;
 
 @Service
@@ -177,7 +177,8 @@ public class ClaimService {
 
 		// Validate approved amount before payment processing
 		if (claim.getApprovedAmount() == null || claim.getApprovedAmount() <= 0) {
-			log.warn("Finance approve blocked: claimId={} invalid approvedAmount={}", claimId, claim.getApprovedAmount());
+			log.warn("Finance approve blocked: claimId={} invalid approvedAmount={}", claimId,
+					claim.getApprovedAmount());
 			throw new RuntimeException("Approved amount must be greater than 0 before payment.");
 		}
 

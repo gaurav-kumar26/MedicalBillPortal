@@ -86,7 +86,8 @@ public class MedicalController {
 	// ==============================
 	@PostMapping("/send-back/{id}")
 	public String sendBackToReception(@PathVariable Long id) {
-		// Put claim back for recheck (sets status to ON_HOLD via existing service logic)
+		// Put claim back for recheck (sets status to ON_HOLD via existing service
+		// logic)
 		claimService.verifyClaim(id, false);
 		return "redirect:/medical/dashboard";
 	}
@@ -101,7 +102,8 @@ public class MedicalController {
 		try {
 			Claim claim = claimService.getClaimById(id);
 			if (claim == null || claim.getItems() == null || claim.getItems().isEmpty()) {
-				ra.addFlashAttribute("error", "No claim items found to review. Please ask employee to resubmit with items.");
+				ra.addFlashAttribute("error",
+						"No claim items found to review. Please ask employee to resubmit with items.");
 				return "redirect:/medical/dashboard";
 			}
 

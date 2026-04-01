@@ -22,7 +22,7 @@
 		<div class="container-fluid">
 			<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
 				<h2 class="fw-bold mb-0">Employee Claim Submission</h2>
-				<div class="text-muted small">Upload & submit for verification</div>
+				<div class="text-muted small">Upload and submit for verification</div>
 			</div>
 
 			<div class="card card-soft p-4">
@@ -44,11 +44,11 @@
 					<div class="row g-3">
 						<div class="col-md-4">
 							<label class="form-label fw-semibold">Claim Type</label>
-							<select class="form-select" name="claimType" required>
-								<option value="" selected disabled>Choose...</option>
-								<option value="Medicine">Medicine</option>
-								<option value="Surgery">Surgery</option>
-							</select>
+							<select id="claimType" name="claimType" class="form-control">
+                                <option value="">Choose...</option>
+                                <option value="Medicine">Medicine</option>
+                                <option value="Surgery">Surgery</option>
+                            </select>
 						</div>
 						<div class="col-md-4">
 							<label class="form-label fw-semibold">Bill Date</label>
@@ -93,7 +93,7 @@
 					<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
 						<div>
 							<div class="form-section-title mb-1">Medicine / Operation Details</div>
-							<div class="text-muted small">Add 5–10 items. Total amount is calculated automatically.</div>
+							<div class="text-muted small"> Total amount is calculated automatically.</div>
 						</div>
 						<div class="text-end">
 							<label class="form-label fw-semibold mb-1">Total Amount</label>
@@ -124,9 +124,7 @@
 						<button type="button" id="addMedicineBtn" class="btn btn-outline-primary fw-semibold">
 							<i class="bi bi-plus-circle me-2"></i>Add Medicine / Operation
 						</button>
-						<div class="text-muted small">
-							Minimum 5 rows are prefilled.
-						</div>
+					
 					</div>
 
 					<div class="alert alert-warning mt-3 mb-3" th:if="${error}">
@@ -158,7 +156,7 @@
 		const computedLabel = document.getElementById('computedTotalLabel');
 
 		const MAX_ROWS = 10;
-		const MIN_ROWS = 5;
+		const MIN_ROWS = 1;
 		let rowCount = 0;
 
 		function formatMoney(n) {
@@ -192,6 +190,8 @@
 				<td>
 					<input type="number" class="form-control form-control-sm med-qty" min="1" step="1" value="1" required oninput="void(0)" />
 				</td>
+				
+				
 				<td>
 					<input type="number" class="form-control form-control-sm med-price" min="0" step="0.01" value="0" required />
 				</td>
@@ -231,7 +231,26 @@
 			billDate.value = iso;
 		}
 	})();
+	
+	const claimTypeSelect = document.getElementById("claimType");
+
+	claimTypeSelect.addEventListener("change", function () {
+	    const isSurgery = this.value === "Surgery";
+
+	    document.querySelectorAll(".med-qty").forEach(input => {
+	        if (isSurgery) {
+	            input.value = 1;
+	            input.disabled = true;
+	        } else {
+	            input.disabled = false;
+	        }
+	    });
+	});
+
+	// run on page load
+	window.addEventListener("load", () => {
+	    claimTypeSelect.dispatchEvent(new Event("change"));
+	});
 </script>
 </body>
 </html>
-

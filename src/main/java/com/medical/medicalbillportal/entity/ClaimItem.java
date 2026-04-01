@@ -1,11 +1,11 @@
 package com.medical.medicalbillportal.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,7 +29,8 @@ public class ClaimItem {
 
 	private boolean covered; // Covered by policy
 
-	// Legacy fields (kept for backward compatibility with existing UI/templates/services)
+	// Legacy fields (kept for backward compatibility with existing
+	// UI/templates/services)
 	private int quantity;
 	private double price;
 

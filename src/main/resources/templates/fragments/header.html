@@ -14,11 +14,6 @@
         .navbar {
             border-radius: 0 0 15px 15px;
         }
-
-        .active-link {
-            background-color: #0d6efd;
-            color: white !important;
-        }
     </style>
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-lg sticky-top">
@@ -41,8 +36,7 @@
 
                     <!-- 👤 EMPLOYEE -->
                     <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
-                        <a class="btn btn-outline-light btn-sm px-3 
-                           [[${#httpServletRequest.requestURI.contains('/employee')} ? 'active-link' : '']]"
+                        <a class="btn btn-outline-light btn-sm px-3"
                            th:href="@{/employee/dashboard}">
                             👤 Employee
                         </a>
@@ -50,26 +44,23 @@
 
                     <!-- 🧾 RECEPTION -->
                     <li class="nav-item" sec:authorize="hasRole('RECEPTION')">
-                        <a class="btn btn-outline-warning btn-sm px-3 
-                           [[${#httpServletRequest.requestURI.contains('/reception')} ? 'active-link' : '']]"
+                        <a class="btn btn-outline-warning btn-sm px-3"
                            th:href="@{/reception/dashboard}">
                             🧾 Reception
                         </a>
                     </li>
 
                     <!-- 🏥 MEDICAL -->
-                    <li class="nav-item" sec:authorize="hasRole('MEDICAL')">
-                        <a class="btn btn-outline-info btn-sm px-3 
-                           [[${#httpServletRequest.requestURI.contains('/medical')} ? 'active-link' : '']]"
+                    <li class="nav-item" sec:authorize="hasRole('MEDICAL_OFFICER')">
+                        <a class="btn btn-outline-info btn-sm px-3"
                            th:href="@{/medical/dashboard}">
                             🏥 Medical
                         </a>
                     </li>
 
                     <!-- 💰 FINANCE -->
-                    <li class="nav-item" sec:authorize="hasRole('FINANCE')">
-                        <a class="btn btn-outline-success btn-sm px-3 
-                           [[${#httpServletRequest.requestURI.contains('/finance')} ? 'active-link' : '']]"
+                    <li class="nav-item" sec:authorize="hasRole('FINANCE_OFFICER')">
+                        <a class="btn btn-outline-success btn-sm px-3"
                            th:href="@{/finance/dashboard}">
                             💰 Finance
                         </a>
@@ -93,13 +84,25 @@
 
                             <li><hr class="dropdown-divider"></li>
 
-                            <!-- Logout -->
+                            <!-- 🔥 LOGOUT -->
                             <li>
-                                <form th:action="@{/logout}" method="post">
+
+                                <!-- Employee Logout -->
+                                <form th:if="${#authorization.expression('hasRole(''EMPLOYEE'')')}"
+                                      th:action="@{/logout}" method="post">
                                     <button class="dropdown-item text-danger">
                                         🚪 Logout
                                     </button>
                                 </form>
+
+                                <!-- Staff Logout -->
+                                <form th:if="${#authorization.expression('!hasRole(''EMPLOYEE'')')}"
+                                      th:action="@{/staff/logout}" method="post">
+                                    <button class="dropdown-item text-danger">
+                                        🚪 Logout
+                                    </button>
+                                </form>
+
                             </li>
 
                         </ul>

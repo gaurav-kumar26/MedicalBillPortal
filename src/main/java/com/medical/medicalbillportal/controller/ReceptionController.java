@@ -24,7 +24,8 @@ public class ReceptionController {
 	@GetMapping("/dashboard")
 	public String dashboard(Model model) {
 
-		// Include both "PENDING" and "ON_HOLD" so "Send Back to Reception" can be rechecked.
+		// Include both "PENDING" and "ON_HOLD" so "Send Back to Reception" can be
+		// rechecked.
 		List<Claim> claims = claimService.getClaimsByStatus("PENDING");
 		claims.addAll(claimService.getClaimsByStatus("ON_HOLD"));
 
