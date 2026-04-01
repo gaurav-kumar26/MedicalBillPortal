@@ -3,114 +3,372 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <div th:fragment="header">
+<style>
+  :root {
+    --ccl-navy:     #0B1F3A;
+    --ccl-navy-mid: #122845;
+    --ccl-steel:    #1565C0;
+    --ccl-steel-lt: #1E88E5;
+    --ccl-accent:   #F59E0B;
+    --ccl-success:  #10B981;
+    --ccl-danger:   #EF4444;
+    --ccl-border:   #DDE3EE;
+    --ccl-off:      #F0F4FA;
+    --ccl-text:     #0F172A;
+    --ccl-muted:    #64748B;
+    --sidebar-w:    260px;
+  }
 
-    <!-- 🔥 Custom Style -->
-    <style>
-        .navbar-brand {
-            letter-spacing: 1px;
-            font-size: 22px;
-        }
+  /* ── GLOBAL RESETS ───────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    background: var(--ccl-off);
+    color: var(--ccl-text);
+    margin: 0;
+  }
 
-        .navbar {
-            border-radius: 0 0 15px 15px;
-        }
+  /* ── NAVBAR ──────────────────────────────── */
+  .ccl-navbar {
+    background: var(--ccl-navy);
+    height: 62px;
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 500;
+    box-shadow: 0 2px 12px rgba(0,0,0,.28);
+    gap: 1rem;
+  }
 
-        .active-link {
-            background-color: #0d6efd;
-            color: white !important;
-        }
-    </style>
+  /* brand */
+  .ccl-brand {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; flex-shrink: 0;
+  }
+  .ccl-brand-icon {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--ccl-steel-lt), var(--ccl-accent));
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1rem;
+  }
+  .ccl-brand-text {
+    font-family: 'Syne', 'Segoe UI', sans-serif;
+    font-size: 1.05rem; font-weight: 700; color: #fff; letter-spacing: .01em;
+  }
+  .ccl-brand-text span { color: var(--ccl-accent); }
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-lg sticky-top">
-        <div class="container">
+  /* spacer */
+  .ccl-nav-spacer { flex: 1; }
 
-            <!-- Logo -->
-            <a class="navbar-brand fw-bold text-warning">
-                💊 Medical Portal
+  /* role badge in center */
+  .ccl-role-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 100px;
+    padding: .28rem .85rem;
+    font-size: .78rem; font-weight: 600;
+    color: rgba(255,255,255,.8);
+    letter-spacing: .03em;
+    text-transform: uppercase;
+  }
+  .ccl-role-badge i { font-size: .8rem; }
+  .ccl-role-badge.emp   { color: #FCD34D; border-color: rgba(252,211,77,.25); }
+  .ccl-role-badge.staff { color: #93C5FD; border-color: rgba(147,197,253,.25); }
+  .ccl-role-badge.admin { color: #F87171; border-color: rgba(248,113,113,.25); }
+
+  /* right section */
+  .ccl-nav-right {
+    display: flex; align-items: center; gap: .5rem;
+  }
+
+  /* dashboard quick link */
+  .ccl-dash-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 8px;
+    padding: .35rem .9rem;
+    color: rgba(255,255,255,.85);
+    font-size: .82rem; font-weight: 500;
+    text-decoration: none;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .ccl-dash-btn:hover { background: rgba(255,255,255,.18); color: #fff; }
+
+  /* profile dropdown trigger */
+  .ccl-profile-btn {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(245,158,11,.15);
+    border: 1px solid rgba(245,158,11,.3);
+    border-radius: 8px;
+    padding: .35rem .9rem;
+    color: var(--ccl-accent);
+    font-size: .82rem; font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .15s;
+  }
+  .ccl-profile-btn:hover { background: rgba(245,158,11,.25); color: var(--ccl-accent); }
+  .ccl-profile-btn .ccl-avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--ccl-accent);
+    color: var(--ccl-navy);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .7rem; font-weight: 800;
+  }
+
+  /* dropdown menu */
+  .ccl-dropdown { position: relative; }
+  .ccl-dropdown-menu {
+    display: none;
+    position: absolute; right: 0; top: calc(100% + 8px);
+    background: #fff;
+    border: 1px solid var(--ccl-border);
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.15);
+    min-width: 210px;
+    padding: .5rem;
+    z-index: 600;
+  }
+  .ccl-dropdown:hover .ccl-dropdown-menu { display: block; }
+  .ccl-dropdown-menu .ddm-user {
+    padding: .7rem .85rem .5rem;
+    border-bottom: 1px solid var(--ccl-border);
+    margin-bottom: .35rem;
+  }
+  .ddm-user-name {
+    font-weight: 600; font-size: .9rem; color: var(--ccl-text);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ddm-user-role {
+    font-size: .75rem; color: var(--ccl-muted); margin-top: 2px;
+  }
+  .ddm-item {
+    display: flex; align-items: center; gap: 9px;
+    padding: .55rem .85rem;
+    border-radius: 8px;
+    font-size: .86rem; color: var(--ccl-text);
+    text-decoration: none;
+    transition: background .12s;
+    cursor: pointer; border: none; background: none; width: 100%;
+    text-align: left; font-family: inherit;
+  }
+  .ddm-item:hover { background: var(--ccl-off); }
+  .ddm-item.danger { color: var(--ccl-danger); }
+  .ddm-item.danger:hover { background: #FFF1F2; }
+  .ddm-item i { width: 16px; text-align: center; font-size: .9rem; }
+  .ddm-divider { border-top: 1px solid var(--ccl-border); margin: .35rem 0; }
+
+  /* hamburger (mobile) */
+  .ccl-hamburger {
+    display: none; flex-direction: column; gap: 5px;
+    background: none; border: none; cursor: pointer; padding: 4px;
+    margin-left: auto;
+  }
+  .ccl-hamburger span {
+    display: block; width: 22px; height: 2px;
+    background: rgba(255,255,255,.8); border-radius: 2px;
+  }
+
+  /* ── SIDEBAR ─────────────────────────────── */
+  .ccl-sidebar {
+    width: var(--sidebar-w);
+    min-height: calc(100vh - 62px);
+    background: #fff;
+    border-right: 1px solid var(--ccl-border);
+    display: flex; flex-direction: column;
+    padding: 1.25rem .85rem;
+    position: sticky; top: 62px;
+    align-self: flex-start;
+    height: calc(100vh - 62px);
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  .ccl-sidebar-label {
+    font-size: .7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em;
+    color: var(--ccl-muted);
+    padding: .3rem .6rem .5rem;
+    margin-top: .5rem;
+  }
+  .ccl-sidebar-label:first-child { margin-top: 0; }
+  .ccl-nav-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: .6rem .85rem;
+    border-radius: 10px;
+    font-size: .88rem; font-weight: 500;
+    color: var(--ccl-muted);
+    text-decoration: none;
+    transition: all .15s;
+    margin-bottom: 2px;
+  }
+  .ccl-nav-link i {
+    width: 18px; text-align: center; font-size: .95rem; flex-shrink: 0;
+  }
+  .ccl-nav-link:hover {
+    background: var(--ccl-off);
+    color: var(--ccl-navy);
+  }
+  .ccl-nav-link.active {
+    background: #EFF6FF;
+    color: var(--ccl-steel);
+    font-weight: 600;
+  }
+  .ccl-nav-link.active i { color: var(--ccl-steel); }
+  .ccl-sidebar-divider {
+    border: none; border-top: 1px solid var(--ccl-border);
+    margin: .6rem 0;
+  }
+  .ccl-sidebar-logout {
+    margin-top: auto;
+    padding-top: .75rem;
+    border-top: 1px solid var(--ccl-border);
+  }
+
+  /* ── LAYOUT WRAPPER ──────────────────────── */
+  .ccl-layout { display: flex; min-height: calc(100vh - 62px); }
+  .ccl-main   { flex: 1; padding: 2rem; overflow-x: hidden; }
+
+  /* ── MOBILE OVERLAY + DRAWER ─────────────── */
+  .ccl-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.4); z-index: 400;
+  }
+  .ccl-overlay.open { display: block; }
+  .ccl-sidebar-mobile {
+    position: fixed; left: 0; top: 62px;
+    width: var(--sidebar-w); height: calc(100vh - 62px);
+    background: #fff; z-index: 450;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    overflow-y: auto;
+    padding: 1.25rem .85rem;
+    border-right: 1px solid var(--ccl-border);
+    display: flex; flex-direction: column;
+  }
+  .ccl-sidebar-mobile.open { transform: translateX(0); }
+
+  @media (max-width: 768px) {
+    .ccl-sidebar   { display: none; }
+    .ccl-hamburger { display: flex; }
+    .ccl-role-badge { display: none; }
+    .ccl-main { padding: 1rem; }
+  }
+</style>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+<nav class="ccl-navbar">
+
+    <!-- Brand → home -->
+    <a th:href="@{/}" class="ccl-brand">
+        <div class="ccl-brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+        <span class="ccl-brand-text">CCL <span>Medical</span></span>
+    </a>
+
+    <div class="ccl-nav-spacer"></div>
+
+    <!-- Role badge (center) -->
+    <div sec:authorize="hasRole('EMPLOYEE')"    class="ccl-role-badge emp"><i class="bi bi-person-badge-fill"></i> Employee</div>
+    <div sec:authorize="hasRole('ADMIN')"       class="ccl-role-badge admin"><i class="bi bi-shield-fill"></i> Admin</div>
+    <div sec:authorize="hasRole('RECEPTION')"   class="ccl-role-badge staff"><i class="bi bi-inbox-fill"></i> Reception</div>
+    <div sec:authorize="hasRole('MEDICAL_OFFICER')" class="ccl-role-badge staff"><i class="bi bi-clipboard2-pulse-fill"></i> Medical</div>
+    <div sec:authorize="hasRole('FINANCE_OFFICER')" class="ccl-role-badge staff"><i class="bi bi-bank2"></i> Finance</div>
+
+    <div class="ccl-nav-spacer"></div>
+
+    <!-- Right actions -->
+    <div class="ccl-nav-right">
+
+        <!-- Dashboard shortcut per role -->
+        <a sec:authorize="hasRole('EMPLOYEE')"        th:href="@{/employee/dashboard}"  class="ccl-dash-btn"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a sec:authorize="hasRole('ADMIN')"            th:href="@{/admin/dashboard}"     class="ccl-dash-btn"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a sec:authorize="hasRole('RECEPTION')"        th:href="@{/reception/dashboard}" class="ccl-dash-btn"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a sec:authorize="hasRole('MEDICAL_OFFICER')"  th:href="@{/medical/dashboard}"   class="ccl-dash-btn"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a sec:authorize="hasRole('FINANCE_OFFICER')"  th:href="@{/finance/dashboard}"   class="ccl-dash-btn"><i class="bi bi-speedometer2"></i> Dashboard</a>
+
+        <!-- Profile dropdown -->
+        <div class="ccl-dropdown" sec:authorize="isAuthenticated()">
+            <a class="ccl-profile-btn">
+                <div class="ccl-avatar"><i class="bi bi-person-fill" style="font-size:.75rem;"></i></div>
+                <span sec:authentication="name">User</span>
+                <i class="bi bi-chevron-down" style="font-size:.65rem;"></i>
             </a>
+            <div class="ccl-dropdown-menu">
+                <div class="ddm-user">
+                    <div class="ddm-user-name">
+                        <i class="bi bi-person-circle" style="color:var(--ccl-steel);"></i>
+                        <span sec:authentication="name">Username</span>
+                    </div>
+                    <div class="ddm-user-role">
+                        <span sec:authorize="hasRole('EMPLOYEE')">Employee</span>
+                        <span sec:authorize="hasRole('ADMIN')">Administrator</span>
+                        <span sec:authorize="hasRole('RECEPTION')">Reception Staff</span>
+                        <span sec:authorize="hasRole('MEDICAL_OFFICER')">Medical Officer</span>
+                        <span sec:authorize="hasRole('FINANCE_OFFICER')">Finance Officer</span>
+                    </div>
+                </div>
 
-            <!-- Toggle -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+                <div class="ddm-divider"></div>
 
-            <!-- Menu -->
-            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Employee logout -->
+                <form th:if="${#authorization.expression('hasRole(''EMPLOYEE'')')}"
+                      th:action="@{/logout}" method="post" style="margin:0;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="ddm-item danger">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </form>
 
-                <ul class="navbar-nav ms-auto align-items-center gap-2">
-
-                    <!-- 👤 EMPLOYEE -->
-                    <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
-                        <a class="btn btn-outline-light btn-sm px-3 
-                           [[${#httpServletRequest.requestURI.contains('/employee')} ? 'active-link' : '']]"
-                           th:href="@{/employee/dashboard}">
-                            👤 Employee
-                        </a>
-                    </li>
-
-                    <!-- 🧾 RECEPTION -->
-                    <li class="nav-item" sec:authorize="hasRole('RECEPTION')">
-                        <a class="btn btn-outline-warning btn-sm px-3 
-                           [[${#httpServletRequest.requestURI.contains('/reception')} ? 'active-link' : '']]"
-                           th:href="@{/reception/dashboard}">
-                            🧾 Reception
-                        </a>
-                    </li>
-
-                    <!-- 🏥 MEDICAL -->
-                    <li class="nav-item" sec:authorize="hasRole('MEDICAL')">
-                        <a class="btn btn-outline-info btn-sm px-3 
-                           [[${#httpServletRequest.requestURI.contains('/medical')} ? 'active-link' : '']]"
-                           th:href="@{/medical/dashboard}">
-                            🏥 Medical
-                        </a>
-                    </li>
-
-                    <!-- 💰 FINANCE -->
-                    <li class="nav-item" sec:authorize="hasRole('FINANCE')">
-                        <a class="btn btn-outline-success btn-sm px-3 
-                           [[${#httpServletRequest.requestURI.contains('/finance')} ? 'active-link' : '']]"
-                           th:href="@{/finance/dashboard}">
-                            💰 Finance
-                        </a>
-                    </li>
-
-                    <!-- 👤 PROFILE -->
-                    <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                        <a class="btn btn-outline-warning btn-sm dropdown-toggle px-3"
-                           href="#" role="button" data-bs-toggle="dropdown">
-                            👤 Profile
-                        </a>
-
-                        <ul class="dropdown-menu dropdown-menu-end">
-
-                            <!-- Username -->
-                            <li>
-                                <span class="dropdown-item">
-                                    👤 <span sec:authentication="name"></span>
-                                </span>
-                            </li>
-
-                            <li><hr class="dropdown-divider"></li>
-
-                            <!-- Logout -->
-                            <li>
-                                <form th:action="@{/logout}" method="post">
-                                    <button class="dropdown-item text-danger">
-                                        🚪 Logout
-                                    </button>
-                                </form>
-                            </li>
-
-                        </ul>
-                    </li>
-
-                </ul>
+                <!-- Staff logout -->
+                <form th:if="${#authorization.expression('!hasRole(''EMPLOYEE'')')}"
+                      th:action="@{/staff/logout}" method="post" style="margin:0;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="ddm-item danger">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </form>
 
             </div>
-
         </div>
-    </nav>
+
+    </div>
+
+    <!-- Hamburger (mobile) -->
+    <button class="ccl-hamburger" id="cclHamburger">
+        <span></span><span></span><span></span>
+    </button>
+
+</nav>
+
+<!-- Mobile overlay -->
+<div class="ccl-overlay" id="cclOverlay" onclick="cclCloseSidebar()"></div>
+
+<script>
+  document.getElementById('cclHamburger').addEventListener('click', function() {
+    document.getElementById('cclMobileSidebar').classList.toggle('open');
+    document.getElementById('cclOverlay').classList.toggle('open');
+  });
+  function cclCloseSidebar() {
+    document.getElementById('cclMobileSidebar').classList.remove('open');
+    document.getElementById('cclOverlay').classList.remove('open');
+  }
+  // Auto-highlight active sidebar link
+  document.addEventListener('DOMContentLoaded', function() {
+    var path = window.location.pathname;
+    document.querySelectorAll('.ccl-nav-link').forEach(function(link) {
+      if (link.getAttribute('href') && path.startsWith(link.getAttribute('href'))) {
+        link.classList.add('active');
+      }
+    });
+  });
+</script>
 
 </div>
 </html>

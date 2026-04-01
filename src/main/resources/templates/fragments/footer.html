@@ -1,15 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
 <div th:fragment="footer">
+<footer style="
+    background: #0B1F3A;
+    color: rgba(255,255,255,.55);
+    padding: 1.5rem 2rem;
+    font-family: 'DM Sans','Segoe UI',sans-serif;
+    font-size: .82rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .5rem;
+    border-top: 1px solid rgba(255,255,255,.08);
+">
+    <div style="display:flex;align-items:center;gap:8px;">
+        <span style="
+            width:26px;height:26px;border-radius:7px;
+            background:linear-gradient(135deg,#1E88E5,#F59E0B);
+            display:inline-flex;align-items:center;justify-content:center;
+            font-size:.7rem;color:#fff;
+        "><i class="bi bi-heart-pulse-fill"></i></span>
+        <span><strong style="color:rgba(255,255,255,.8);">CCL Medical Portal</strong> &nbsp;—&nbsp; Central Coalfields Limited, Ranchi</span>
+    </div>
 
-    <footer class="bg-dark text-white text-center p-3 mt-5">
+    <div style="display:flex;gap:1.25rem;flex-wrap:wrap;">
+        <a href="/" style="color:rgba(255,255,255,.45);text-decoration:none;transition:color .15s;" onmouseover="this.style.color='#F59E0B'" onmouseout="this.style.color='rgba(255,255,255,.45)'">Home</a>
+        <a href="#" style="color:rgba(255,255,255,.45);text-decoration:none;transition:color .15s;" onmouseover="this.style.color='#F59E0B'" onmouseout="this.style.color='rgba(255,255,255,.45)'">Help</a>
+        <a href="mailto:help@ccl.co.in" style="color:rgba(255,255,255,.45);text-decoration:none;transition:color .15s;" onmouseover="this.style.color='#F59E0B'" onmouseout="this.style.color='rgba(255,255,255,.45)'">help@ccl.co.in</a>
+    </div>
 
-        <p class="mb-1">
-            © 2026 Medical Claim Portal
-        </p>
-
-        <small class="text-light">
-            Developed by us| MCA Project
-        </small>
-
-    </footer>
-
+    <div>&copy; 2025 CCL &nbsp;|&nbsp; MCA Project</div>
+</footer>
 </div>
+
+</html>

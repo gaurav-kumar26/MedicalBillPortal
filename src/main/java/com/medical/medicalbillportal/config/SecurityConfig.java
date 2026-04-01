@@ -45,7 +45,9 @@ public class SecurityConfig {
                         res.sendRedirect("/staff/login?error=true"))
             )
 
+            // ✅ FIXED LOGOUT
             .logout(logout -> logout
+                .logoutUrl("/staff/logout")
                 .logoutSuccessUrl("/staff/login?logout")
             );
 
@@ -60,7 +62,10 @@ public class SecurityConfig {
     public SecurityFilterChain employeeSecurity(HttpSecurity http) throws Exception {
 
         http
-            .securityMatcher("/employee/**", "/claims/**", "/auth/**", "/")
+            
+            .securityMatcher("/employee/**", "/claims/**", "/auth/**", "/", "/logout")
+            
+            
 
             .csrf(csrf -> csrf.disable())
 
@@ -81,7 +86,9 @@ public class SecurityConfig {
                         res.sendRedirect("/employee/login?error=true"))
             )
 
+            // ✅ FIXED LOGOUT
             .logout(logout -> logout
+                .logoutUrl("/logout")
                 .logoutSuccessUrl("/employee/login?logout")
             );
 

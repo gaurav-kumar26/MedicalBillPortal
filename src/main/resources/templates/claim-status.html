@@ -82,18 +82,18 @@
                             <td th:text="${c.approvedAmount != null ? c.approvedAmount : 0}">0</td>
 
                             <!-- Remarks -->
-                            <td>
-                                <div th:if="${c.remarks != null and !#strings.isEmpty(c.remarks)}">
-                                    <ul class="mb-0 small">
-                                        <li th:each="line : ${#strings.arraySplit(c.remarks, '\n')}"
-                                            th:if="${!#strings.isEmpty(line)}"
-                                            th:text="${line}">
-                                        </li>
-                                    </ul>
-                                </div>
-                                <span th:if="${c.remarks == null or #strings.isEmpty(c.remarks)}"
-                                      class="text-muted small">-</span>
-                            </td>
+                           <td>
+    <div th:if="${c.remarks != null and !#strings.isEmpty(c.remarks)}">
+        <ul class="mb-0 small" style="padding-left: 16px;">
+            <li th:each="line : ${#strings.arraySplit(c.remarks, '\n')}"
+                th:if="${!#strings.isEmpty(line)}"
+                th:text="${line}">
+            </li>
+        </ul>
+    </div>
+    <span th:if="${c.remarks == null or #strings.isEmpty(c.remarks)}"
+          class="text-muted small">No remarks</span>
+</td>
 
                             <!-- Timeline -->
                             <td style="min-width: 260px;">

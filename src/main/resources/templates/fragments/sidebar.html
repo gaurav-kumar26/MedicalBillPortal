@@ -1,45 +1,163 @@
-<div xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="sidebar">
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-    <div class="bg-white border-end p-3" style="width: 260px; min-height: 100vh;">
-        <h5 class="text-muted mb-3">Modules</h5>
+<!-- ═══════════════════════════════════════════
+     DESKTOP SIDEBAR
+═══════════════════════════════════════════ -->
+<div th:fragment="sidebar">
+<aside class="ccl-sidebar">
 
-        <ul class="nav flex-column gap-2">
+    <!-- ── EMPLOYEE ─────────────────────────── -->
+    <div sec:authorize="hasRole('EMPLOYEE')">
+        <div class="ccl-sidebar-label">Employee</div>
+        <a href="/employee/dashboard" class="ccl-nav-link">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <a href="/claims/form" class="ccl-nav-link">
+            <i class="bi bi-file-earmark-plus"></i> Submit Claim
+        </a>
+        <a href="/claims/status" class="ccl-nav-link">
+            <i class="bi bi-clipboard2-pulse"></i> Claim Status
+        </a>
+    </div>
 
-            <!-- Employee -->
-            <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
-                <a class="nav-link" href="/employee/dashboard">Employee Dashboard</a>
-            </li>
-            <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
-                <a class="nav-link" href="/claims/form">Submit Claim</a>
-            </li>
-            <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
-                <a class="nav-link" href="/claims/status">Claim Status</a>
-            </li>
+    <!-- ── ADMIN ─────────────────────────────── -->
+    <div sec:authorize="hasRole('ADMIN')">
+        <div class="ccl-sidebar-label">Administration</div>
+        <a href="/admin/dashboard" class="ccl-nav-link">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <a href="/employee/all" class="ccl-nav-link">
+            <i class="bi bi-people"></i> Manage Employees
+        </a>
+        <a href="/admin/staff" class="ccl-nav-link">
+            <i class="bi bi-person-gear"></i> Manage Staff
+        </a>
+        <a href="/admin/claims" class="ccl-nav-link">
+            <i class="bi bi-folder2-open"></i> All Claims
+        </a>
+        <a href="/admin/reports" class="ccl-nav-link">
+            <i class="bi bi-bar-chart-line"></i> Reports
+        </a>
+    </div>
 
-            <!-- Admin -->
-            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                <a class="nav-link" href="/admin/dashboard">Admin Control</a>
-            </li>
-            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                <a class="nav-link" href="/employee/all">Manage Employees</a>
-            </li>
+    <!-- ── RECEPTION ─────────────────────────── -->
+    <div sec:authorize="hasRole('RECEPTION')">
+        <div class="ccl-sidebar-label">Reception</div>
+        <a href="/reception/dashboard" class="ccl-nav-link">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <a href="/reception/claims" class="ccl-nav-link">
+            <i class="bi bi-inbox"></i> Pending Claims
+        </a>
+    </div>
 
-            <!-- Reception -->
-            <li class="nav-item" sec:authorize="hasRole('RECEPTION')">
-                <a class="nav-link" href="/reception/dashboard">Reception</a>
-            </li>
+    <!-- ── MEDICAL ─────────────────────────────── -->
+    <div sec:authorize="hasRole('MEDICAL_OFFICER')">
+        <div class="ccl-sidebar-label">Medical</div>
+        <a href="/medical/dashboard" class="ccl-nav-link">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <a href="/medical/claims" class="ccl-nav-link">
+            <i class="bi bi-clipboard2-pulse"></i> Review Claims
+        </a>
+        <a href="/medical/reports" class="ccl-nav-link">
+            <i class="bi bi-file-earmark-bar-graph"></i> Reports
+        </a>
+    </div>
 
-            <!-- Medical -->
-            <li class="nav-item" sec:authorize="hasRole('MEDICAL')">
-                <a class="nav-link" href="/medical/dashboard">Medical Officer</a>
-            </li>
+    <!-- ── FINANCE ────────────────────────────── -->
+    <div sec:authorize="hasRole('FINANCE_OFFICER')">
+        <div class="ccl-sidebar-label">Finance</div>
+        <a href="/finance/dashboard" class="ccl-nav-link">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <a href="/finance/claims" class="ccl-nav-link">
+            <i class="bi bi-bank2"></i> Approved Claims
+        </a>
+    </div>
 
-            <!-- Finance -->
-            <li class="nav-item" sec:authorize="hasRole('FINANCE')">
-                <a class="nav-link" href="/finance/dashboard">Finance</a>
-            </li>
+    <hr class="ccl-sidebar-divider" style="margin-top:auto;">
 
-        </ul>
+    <!-- ── LOGOUT at bottom ───────────────────── -->
+    <div class="ccl-sidebar-logout" sec:authorize="isAuthenticated()">
+        <form th:if="${#authorization.expression('hasRole(''EMPLOYEE'')')}"
+              th:action="@{/logout}" method="post" style="margin:0;">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="ccl-nav-link" style="width:100%;border:none;background:none;cursor:pointer;color:#EF4444;">
+                <i class="bi bi-box-arrow-right" style="color:#EF4444;"></i> Logout
+            </button>
+        </form>
+        <form th:if="${#authorization.expression('!hasRole(''EMPLOYEE'')')}"
+              th:action="@{/staff/logout}" method="post" style="margin:0;">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="ccl-nav-link" style="width:100%;border:none;background:none;cursor:pointer;color:#EF4444;">
+                <i class="bi bi-box-arrow-right" style="color:#EF4444;"></i> Logout
+            </button>
+        </form>
+    </div>
+
+</aside>
+
+<!-- ═══════════════════════════════════════════
+     MOBILE SIDEBAR DRAWER (injected by header.html JS)
+═══════════════════════════════════════════ -->
+<div id="cclMobileSidebar" class="ccl-sidebar-mobile">
+
+    <div sec:authorize="hasRole('EMPLOYEE')">
+        <div class="ccl-sidebar-label">Employee</div>
+        <a href="/employee/dashboard" class="ccl-nav-link" onclick="cclCloseSidebar()"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a href="/claims/form"        class="ccl-nav-link" onclick="cclCloseSidebar()"><i class="bi bi-file-earmark-plus"></i> Submit Claim</a>
+        <a href="/claims/status"      class="ccl-nav-link" onclick="cclCloseSidebar()"><i class="bi bi-clipboard2-pulse"></i> Claim Status</a>
+    </div>
+
+    <div sec:authorize="hasRole('ADMIN')">
+        <div class="ccl-sidebar-label">Administration</div>
+        <a href="/admin/dashboard" class="ccl-nav-link" onclick="cclCloseSidebar()"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a href="/employee/all"    class="ccl-nav-link" onclick="cclCloseSidebar()"><i class="bi bi-people"></i> Manage Employees</a>
+        <a href="/admin/staff"     class="ccl-nav-link" onclick="cclCloseSidebar()"><i class="bi bi-person-gear"></i> Manage Staff</a>
+        <a href="/admin/claims"    class="ccl-nav-link" onclick="cclCloseSidebar()"><i class="bi bi-folder2-open"></i> All Claims</a>
+        <a href="/admin/reports"   class="ccl-nav-link" onclick="cclCloseSidebar()"><i class="bi bi-bar-chart-line"></i> Reports</a>
+    </div>
+
+    <div sec:authorize="hasRole('RECEPTION')">
+        <div class="ccl-sidebar-label">Reception</div>
+        <a href="/reception/dashboard" class="ccl-nav-link" onclick="cclCloseSidebar()"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a href="/reception/claims"    class="ccl-nav-link" onclick="cclCloseSidebar()"><i class="bi bi-inbox"></i> Pending Claims</a>
+    </div>
+
+    <div sec:authorize="hasRole('MEDICAL_OFFICER')">
+        <div class="ccl-sidebar-label">Medical</div>
+        <a href="/medical/dashboard" class="ccl-nav-link" onclick="cclCloseSidebar()"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a href="/medical/claims"    class="ccl-nav-link" onclick="cclCloseSidebar()"><i class="bi bi-clipboard2-pulse"></i> Review Claims</a>
+        <a href="/medical/reports"   class="ccl-nav-link" onclick="cclCloseSidebar()"><i class="bi bi-file-earmark-bar-graph"></i> Reports</a>
+    </div>
+
+    <div sec:authorize="hasRole('FINANCE_OFFICER')">
+        <div class="ccl-sidebar-label">Finance</div>
+        <a href="/finance/dashboard" class="ccl-nav-link" onclick="cclCloseSidebar()"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a href="/finance/claims"    class="ccl-nav-link" onclick="cclCloseSidebar()"><i class="bi bi-bank2"></i> Approved Claims</a>
+    </div>
+
+    <div class="ccl-sidebar-logout" sec:authorize="isAuthenticated()">
+        <form th:if="${#authorization.expression('hasRole(''EMPLOYEE'')')}"
+              th:action="@{/logout}" method="post" style="margin:0;">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="ccl-nav-link" style="width:100%;border:none;background:none;cursor:pointer;color:#EF4444;">
+                <i class="bi bi-box-arrow-right" style="color:#EF4444;"></i> Logout
+            </button>
+        </form>
+        <form th:if="${#authorization.expression('!hasRole(''EMPLOYEE'')')}"
+              th:action="@{/staff/logout}" method="post" style="margin:0;">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="ccl-nav-link" style="width:100%;border:none;background:none;cursor:pointer;color:#EF4444;">
+                <i class="bi bi-box-arrow-right" style="color:#EF4444;"></i> Logout
+            </button>
+        </form>
     </div>
 
 </div>
+
+</div>
+</html>

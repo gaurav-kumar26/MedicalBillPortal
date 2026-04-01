@@ -52,7 +52,6 @@ public class ClaimController {
 
 		model.addAttribute("claim", new Claim());
 
-		// Prefill employee details for the UI only (claim still gets employee in submit handler).
 		Employee employee = employeeService.findByUsername(authentication.getName());
 		model.addAttribute("employeeName", employee.getName());
 		model.addAttribute("employeeCode", employee.getEmployeeCode());
@@ -71,42 +70,39 @@ public class ClaimController {
 			@RequestParam(value = "doctorName", required = false) String doctorName, Authentication authentication,
 			Model model) {
 
-		// Used by the UI even if upload fails.
+		// Prefill UI
 		Employee employee = employeeService.findByUsername(authentication.getName());
 		model.addAttribute("employeeName", employee.getName());
 		model.addAttribute("employeeCode", employee.getEmployeeCode());
 
 		try {
-			// 🔥 Get logged-in username
+			// 🔥 Get logged-in employee
 			String username = authentication.getName();
-
-			// 🔥 Fetch employee using username
 			employee = employeeService.findByUsername(username);
 
 			// 🔥 Attach employee to claim
 			claim.setEmployee(employee);
 
-			// Map UI fields not present in the current Claim entity (store in remarks)
-			StringBuilder uiDetails = new StringBuilder();
-			if (claimType != null && !claimType.isBlank()) {
-				uiDetails.append("Claim Type: ").append(claimType).append("\n");
-			}
-			if (hospitalName != null && !hospitalName.isBlank()) {
-				uiDetails.append("Hospital: ").append(hospitalName).append("\n");
-			}
-			if (doctorName != null && !doctorName.isBlank()) {
-				uiDetails.append("Doctor: ").append(doctorName).append("\n");
-			}
+			// ============================
+			// ✅ BUG 1 FIX — REMARKS
+			// ============================
+			// claim.getRemarks() holds the Bill Description typed in the form.
+			// Save it into billDescription FIRST — before setRemarks() overwrites it.
+			// The old code ignored billDescription and called claim.getRemarks() again
+			// at the end, which caused garbled output like "headache Claim Type: Medici".
+			String billDescription = (claim.getRemarks() != null && !claim.getRemarks().isBlank())
+					? claim.getRemarks().trim()
+					: "N/A";
 
-			if (uiDetails.length() > 0) {
-				String existingRemarks = claim.getRemarks() != null ? claim.getRemarks().trim() : "";
-				String suffix = uiDetails.toString().trim();
-				if (!existingRemarks.isEmpty()) {
-					claim.setRemarks(existingRemarks + "\n\n" + suffix);
-				} else {
-					claim.setRemarks(suffix);
-				}
-			}
+			String remarks = "Claim Type: " + (claimType != null ? claimType : "N/A") + "\n" + "Hospital: "
+					+ (hospitalName != null ? hospitalName : "N/A") + "\n" + "Doctor: "
+					+ (doctorName != null ? doctorName : "N/A") + "\n" + "Description: " + billDescription; // ✅ use
+																											// saved
+																											// variable,
+																											// NOT
+																											// claim.getRemarks()
+
+			claim.setRemarks(remarks);
 
 			// 🔥 Save claim + file
 			claimService.submitClaim(claim, file, reports);

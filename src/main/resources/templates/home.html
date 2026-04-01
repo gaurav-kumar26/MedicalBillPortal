@@ -1,118 +1,1075 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>CCL Medical Claim Portal</title>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-	<style>
-		body {
-			min-height: 100vh;
-			background: radial-gradient(1200px circle at 10% 10%, rgba(13,110,253,0.15), transparent 40%),
-				radial-gradient(900px circle at 90% 20%, rgba(25,135,84,0.12), transparent 35%),
-				linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #fefce8 100%);
-		}
-		.hero {
-			padding: 56px 0;
-		}
-		.feature-card {
-			border: 0;
-			border-radius: 18px;
-			box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-			background: rgba(255,255,255,0.85);
-			backdrop-filter: blur(8px);
-		}
-	</style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CCL Medical Claim Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --navy:      #0B1F3A;
+            --navy-mid:  #122845;
+            --steel:     #1565C0;
+            --steel-lt:  #1E88E5;
+            --accent:    #F59E0B;
+            --accent2:   #10B981;
+            --white:     #FFFFFF;
+            --off:       #F0F4FA;
+            --border:    #DDE3EE;
+            --text:      #0F172A;
+            --muted:     #64748B;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--off);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* ── NAVBAR ───────────────────────────────────── */
+        .ccl-nav {
+            background: var(--navy);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            box-shadow: 0 2px 16px rgba(0,0,0,.25);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .nav-brand-icon {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, var(--steel-lt), var(--accent));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; color: #fff;
+        }
+        .nav-brand-text {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: .01em;
+        }
+        .nav-brand-text span { color: var(--accent); }
+
+        /* Desktop nav links */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: .25rem;
+            list-style: none;
+        }
+        .nav-links a {
+            color: rgba(255,255,255,.75);
+            text-decoration: none;
+            padding: .4rem .85rem;
+            border-radius: 8px;
+            font-size: .9rem;
+            font-weight: 500;
+            transition: all .15s;
+        }
+        .nav-links a:hover {
+            color: #fff;
+            background: rgba(255,255,255,.1);
+        }
+
+        /* Dropdown */
+        .nav-dropdown { position: relative; }
+        .nav-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,.15);
+            min-width: 200px;
+            padding: .5rem;
+            z-index: 1000;
+            border: 1px solid var(--border);
+        }
+        .nav-dropdown:hover .nav-dropdown-menu,
+        .nav-dropdown-menu:hover { display: block; }
+        .nav-dropdown-menu a {
+            display: flex; align-items: center; gap: 10px;
+            color: var(--text) !important;
+            padding: .6rem .85rem !important;
+            border-radius: 8px;
+            font-size: .88rem;
+        }
+        .nav-dropdown-menu a:hover { background: var(--off) !important; color: var(--steel) !important; }
+        .nav-dropdown-menu .drop-icon {
+            width: 30px; height: 30px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .85rem; flex-shrink: 0;
+        }
+        .drop-divider { border-top: 1px solid var(--border); margin: .35rem 0; }
+
+        .nav-actions { display: flex; align-items: center; gap: .6rem; }
+
+        .btn-nav-emp {
+            background: var(--accent);
+            color: var(--navy);
+            border: none;
+            padding: .45rem 1.1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: .88rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex; align-items: center; gap: 6px;
+            transition: all .15s;
+        }
+        .btn-nav-emp:hover { filter: brightness(1.08); color: var(--navy); }
+
+        .btn-nav-staff {
+            background: rgba(255,255,255,.12);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.25);
+            padding: .45rem 1.1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: .88rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex; align-items: center; gap: 6px;
+            transition: all .15s;
+        }
+        .btn-nav-staff:hover { background: rgba(255,255,255,.2); color: #fff; }
+
+        /* Hamburger */
+        .hamburger {
+            display: none;
+            flex-direction: column; gap: 5px;
+            cursor: pointer; background: none; border: none; padding: 4px;
+        }
+        .hamburger span {
+            display: block; width: 22px; height: 2px;
+            background: #fff; border-radius: 2px; transition: all .2s;
+        }
+
+        /* Mobile sidebar */
+        .mobile-sidebar {
+            display: none;
+            position: fixed; top: 64px; left: 0;
+            width: 280px; height: calc(100vh - 64px);
+            background: var(--navy);
+            z-index: 998;
+            padding: 1.5rem 1rem;
+            box-shadow: 4px 0 20px rgba(0,0,0,.3);
+            overflow-y: auto;
+            transform: translateX(-100%);
+            transition: transform .25s ease;
+        }
+        .mobile-sidebar.open { transform: translateX(0); }
+        .mob-nav-link {
+            display: flex; align-items: center; gap: 10px;
+            color: rgba(255,255,255,.8);
+            text-decoration: none;
+            padding: .75rem 1rem;
+            border-radius: 10px;
+            font-size: .95rem;
+            font-weight: 500;
+            margin-bottom: .25rem;
+            transition: all .15s;
+        }
+        .mob-nav-link:hover { background: rgba(255,255,255,.1); color: #fff; }
+        .mob-nav-link i { width: 20px; text-align: center; }
+        .mob-divider { border-top: 1px solid rgba(255,255,255,.1); margin: .75rem 0; }
+        .mob-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: .75rem; border-radius: 10px;
+            font-weight: 600; font-size: .95rem;
+            text-decoration: none; margin-bottom: .5rem;
+            transition: all .15s;
+        }
+        .mob-btn-emp  { background: var(--accent); color: var(--navy); }
+        .mob-btn-staff{ background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.2); }
+        .overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4);
+            z-index: 997;
+        }
+        .overlay.open { display: block; }
+
+        /* ── HERO ─────────────────────────────────────── */
+        .hero {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 60%, #0d3060 100%);
+            padding: 80px 0 90px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(21,101,192,.35) 0%, transparent 70%);
+            top: -150px; right: -100px;
+            pointer-events: none;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(245,158,11,.15) 0%, transparent 70%);
+            bottom: -100px; left: 5%;
+            pointer-events: none;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 7px;
+            background: rgba(245,158,11,.15);
+            border: 1px solid rgba(245,158,11,.35);
+            color: var(--accent);
+            padding: .35rem 1rem;
+            border-radius: 100px;
+            font-size: .82rem;
+            font-weight: 600;
+            letter-spacing: .04em;
+            margin-bottom: 1.4rem;
+        }
+        .hero h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.15;
+            margin-bottom: 1rem;
+        }
+        .hero h1 span { color: var(--accent); }
+        .hero-sub {
+            color: rgba(255,255,255,.65);
+            font-size: 1.05rem;
+            max-width: 460px;
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+        .hero-btns { display: flex; gap: .85rem; flex-wrap: wrap; }
+        .btn-hero-emp {
+            background: var(--accent);
+            color: var(--navy);
+            border: none;
+            padding: .75rem 1.75rem;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex; align-items: center; gap: 8px;
+            transition: all .2s;
+            box-shadow: 0 4px 16px rgba(245,158,11,.35);
+        }
+        .btn-hero-emp:hover { transform: translateY(-2px); filter: brightness(1.07); color: var(--navy); }
+        .btn-hero-staff {
+            background: rgba(255,255,255,.1);
+            color: #fff;
+            border: 1.5px solid rgba(255,255,255,.3);
+            padding: .75rem 1.75rem;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex; align-items: center; gap: 8px;
+            transition: all .2s;
+        }
+        .btn-hero-staff:hover { background: rgba(255,255,255,.2); color: #fff; transform: translateY(-2px); }
+
+        /* workflow steps */
+        .workflow-steps {
+            display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 2.5rem;
+        }
+        .ws {
+            display: flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,.08);
+            border: 1px solid rgba(255,255,255,.14);
+            border-radius: 100px;
+            padding: .3rem .85rem;
+            font-size: .8rem;
+            color: rgba(255,255,255,.7);
+        }
+        .ws i { color: var(--accent); font-size: .75rem; }
+        .ws-arrow { color: rgba(255,255,255,.3); font-size: .75rem; }
+
+        /* hero card */
+        .hero-card {
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(12px);
+        }
+        .hero-card h4 {
+            font-family: 'Syne', sans-serif;
+            color: #fff; font-size: 1.15rem; margin-bottom: 1.25rem;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .hero-card h4 i { color: var(--accent); }
+        .info-row {
+            display: flex; gap: 10px;
+            padding: .65rem 0;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+            font-size: .88rem;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: rgba(255,255,255,.5); min-width: 120px; }
+        .info-val   { color: rgba(255,255,255,.9); font-weight: 500; }
+        .info-val a { color: var(--accent); text-decoration: none; }
+
+        /* ── SECTION BASE ─────────────────────────────── */
+        section { padding: 80px 0; }
+        .section-tag {
+            display: inline-block;
+            background: rgba(21,101,192,.1);
+            color: var(--steel);
+            border: 1px solid rgba(21,101,192,.2);
+            border-radius: 100px;
+            padding: .25rem .85rem;
+            font-size: .78rem;
+            font-weight: 600;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            margin-bottom: .85rem;
+        }
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(1.6rem, 3vw, 2.2rem);
+            font-weight: 800;
+            color: var(--navy);
+            margin-bottom: .6rem;
+        }
+        .section-sub { color: var(--muted); font-size: 1rem; max-width: 520px; }
+
+        /* ── FEATURE CARDS ─────────────────────────────── */
+        .feat-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 1.75rem;
+            height: 100%;
+            transition: all .2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .feat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(21,101,192,.04), transparent);
+            opacity: 0;
+            transition: opacity .2s;
+        }
+        .feat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 35px rgba(0,0,0,.1); }
+        .feat-card:hover::before { opacity: 1; }
+        .feat-icon {
+            width: 52px; height: 52px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; margin-bottom: 1rem;
+        }
+        .feat-icon.blue  { background: #EFF6FF; color: var(--steel); }
+        .feat-icon.green { background: #ECFDF5; color: #059669; }
+        .feat-icon.amber { background: #FFFBEB; color: #D97706; }
+        .feat-icon.red   { background: #FFF1F2; color: #E11D48; }
+        .feat-icon.navy  { background: #EEF2FF; color: var(--navy); }
+        .feat-icon.teal  { background: #F0FDFA; color: #0D9488; }
+        .feat-card h5 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.05rem; font-weight: 700;
+            color: var(--navy); margin-bottom: .5rem;
+        }
+        .feat-card p { color: var(--muted); font-size: .88rem; margin: 0; line-height: 1.6; }
+
+        /* ── WORKFLOW SECTION ──────────────────────────── */
+        .workflow-bg { background: var(--navy); }
+        .step-card {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            position: relative;
+        }
+        .step-num {
+            width: 52px; height: 52px; border-radius: 50%;
+            background: var(--accent);
+            color: var(--navy);
+            font-family: 'Syne', sans-serif;
+            font-weight: 800; font-size: 1.15rem;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        .step-card h5 { color: #fff; font-family: 'Syne', sans-serif; font-size: 1rem; margin-bottom: .4rem; }
+        .step-card p  { color: rgba(255,255,255,.55); font-size: .84rem; }
+        .step-arrow {
+            position: absolute; right: -12px; top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,.25); font-size: 1.5rem;
+            display: none;
+        }
+
+        /* ── COMPANY SECTION ───────────────────────────── */
+        .company-section { background: #fff; }
+        .company-detail-card {
+            background: var(--off);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 2rem;
+        }
+        .detail-item {
+            display: flex; gap: 14px; align-items: flex-start;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .detail-item:last-child { border-bottom: none; }
+        .detail-icon {
+            width: 40px; height: 40px; border-radius: 10px;
+            background: #EFF6FF; color: var(--steel);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; flex-shrink: 0; margin-top: 2px;
+        }
+        .detail-label { font-size: .78rem; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+        .detail-val   { font-size: .95rem; color: var(--navy); font-weight: 600; }
+        .detail-val a { color: var(--steel); text-decoration: none; }
+
+        .map-placeholder {
+            background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            height: 280px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            color: var(--steel);
+        }
+        .map-placeholder i { font-size: 3rem; margin-bottom: .75rem; }
+        .map-placeholder p { font-weight: 600; color: var(--navy); }
+        .map-placeholder span { font-size: .85rem; color: var(--muted); }
+
+        /* ── HELP SECTION ─────────────────────────────── */
+        .help-section { background: var(--off); }
+        .help-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 1.75rem;
+            height: 100%;
+        }
+        .help-card h5 {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700; color: var(--navy);
+            margin-bottom: 1rem;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .faq-item {
+            padding: .85rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-q { font-weight: 600; color: var(--navy); font-size: .9rem; margin-bottom: .3rem; }
+        .faq-a { font-size: .84rem; color: var(--muted); }
+
+        .contact-chip {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--off);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: .85rem 1rem;
+            margin-bottom: .6rem;
+            text-decoration: none;
+            transition: all .15s;
+        }
+        .contact-chip:hover { border-color: var(--steel); background: #EFF6FF; }
+        .contact-chip i { color: var(--steel); font-size: 1.1rem; width: 20px; text-align: center; }
+        .contact-chip span { font-size: .88rem; color: var(--navy); font-weight: 500; }
+
+        /* ── FOOTER ───────────────────────────────────── */
+        .ccl-footer {
+            background: var(--navy);
+            color: rgba(255,255,255,.6);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            font-size: .85rem;
+        }
+        .ccl-footer a { color: var(--accent); text-decoration: none; }
+        .footer-links { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .footer-links a { color: rgba(255,255,255,.6); text-decoration: none; font-size: .85rem; transition: color .15s; }
+        .footer-links a:hover { color: var(--accent); }
+
+        /* ── RESPONSIVE ───────────────────────────────── */
+        @media (max-width: 768px) {
+            .nav-links, .nav-actions { display: none; }
+            .hamburger { display: flex; }
+            .mobile-sidebar { display: block; }
+            .step-arrow { display: none !important; }
+        }
+        @media (min-width: 992px) {
+            .step-arrow { display: block; }
+        }
+
+        /* ── ANIMATIONS ───────────────────────────────── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .hero-content > * { animation: fadeUp .6s ease both; }
+        .hero-content > *:nth-child(1) { animation-delay: .05s; }
+        .hero-content > *:nth-child(2) { animation-delay: .15s; }
+        .hero-content > *:nth-child(3) { animation-delay: .25s; }
+        .hero-content > *:nth-child(4) { animation-delay: .35s; }
+        .hero-content > *:nth-child(5) { animation-delay: .45s; }
+    </style>
 </head>
 <body>
-<div th:replace="fragments/header :: header"></div>
 
-<main class="hero">
-	<div class="container">
-		<div class="row align-items-center g-4">
-			<div class="col-lg-6">
-				<h1 class="display-5 fw-bold mb-3">
-					CCL Medical Claim Portal
-				</h1>
-			
+<!-- ════════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════ -->
+<nav class="ccl-nav">
 
-				<div class="d-flex gap-3 flex-wrap">
-					<a th:href="@{/employee/login}" class="btn btn-warning btn-lg fw-semibold px-4">
-						<i class="bi bi-person-badge me-2"></i>Employee Login
-					</a>
-					<a th:href="@{/staff/login}" class="btn btn-dark btn-lg fw-semibold px-4">
-						<i class="bi bi-shield-lock me-2"></i>Staff Login
-					</a>
-				</div>
+    <!-- Brand — clicking takes to home -->
+    <a th:href="@{/}" href="#" class="nav-brand">
+        <div class="nav-brand-icon">
+            <i class="bi bi-heart-pulse-fill"></i>
+        </div>
+        <span class="nav-brand-text">CCL <span>Medical</span></span>
+    </a>
 
-				<div class="mt-4">
-					<a class="text-decoration-none me-3" href="#about">About</a>
-					<a class="text-decoration-none me-3" href="#help">Help</a>
-					<a class="text-decoration-none" href="#company">Company</a>
-				</div>
-			</div>
+    <!-- Desktop nav links -->
+    <ul class="nav-links">
 
-			<div class="col-lg-6">
-				<div class="feature-card p-4 p-md-5">
-					<h3 class="mb-3" id="company">
-						<i class="bi bi-building text-primary me-2"></i>CCL Company Details
-					</h3>
-					<ul class="list-unstyled mb-0">
-						<li class="mb-2"><strong>Company:</strong> CCL</li>
-						<li class="mb-2"><strong>Portal:</strong> Enterprise Medical Claims</li>
-						<li class="mb-2"><strong>Support Email:</strong> help@ccl.example</li>
-						<li class="mb-2"><strong>Processing Workflow:</strong> Verified and paid through policy-controlled steps</li>
-					</ul>
-					<hr class="my-4" />
-					<h5 id="help" class="mb-3">
-						<i class="bi bi-life-preserver text-warning me-2"></i>Need Help?
-					</h5>
-					<p class="text-muted mb-0">
-						For submission and status queries, use Employee Login. For verification and payment, use Staff Login.
-					</p>
-				</div>
-			</div>
-		</div>
+        <li><a href="#about"><i class="bi bi-info-circle me-1"></i>About</a></li>
 
-		<div class="row g-4 mt-4">
-			<div class="col-md-4">
-				<div class="feature-card p-4 h-100">
-					<i class="bi bi-file-earmark-text text-primary fs-3"></i>
-					<h5 class="mt-3">Claim Submission</h5>
-					<p class="text-muted mb-0">Upload medical bills and submit for processing.</p>
-				</div>
-			</div>
-			<div class="col-md-4">
-				<div class="feature-card p-4 h-100">
-					<i class="bi bi-check2-circle text-success fs-3"></i>
-					<h5 class="mt-3">Verification Stages</h5>
-					<p class="text-muted mb-0">Reception and Medical review claim authenticity.</p>
-				</div>
-			</div>
-			<div class="col-md-4">
-				<div class="feature-card p-4 h-100">
-					<i class="bi bi-cash-coin text-success fs-3"></i>
-					<h5 class="mt-3">Finance Processing</h5>
-					<p class="text-muted mb-0">Approved claims move to payment completion.</p>
-				</div>
-			</div>
-		</div>
+        <!-- Pages dropdown -->
+        <li class="nav-dropdown">
+            <a href="#" style="display:flex;align-items:center;gap:5px;">
+                <i class="bi bi-grid-3x3-gap me-1"></i>Pages
+                <i class="bi bi-chevron-down" style="font-size:.7rem;"></i>
+            </a>
+            <div class="nav-dropdown-menu">
+                <a href="#company">
+                    <div class="drop-icon" style="background:#EFF6FF;color:#1565C0;">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    Company
+                </a>
+                <a href="#help">
+                    <div class="drop-icon" style="background:#FFFBEB;color:#D97706;">
+                        <i class="bi bi-life-preserver"></i>
+                    </div>
+                    Help & FAQ
+                </a>
+                <a href="#workflow">
+                    <div class="drop-icon" style="background:#ECFDF5;color:#059669;">
+                        <i class="bi bi-diagram-3"></i>
+                    </div>
+                    How it Works
+                </a>
+                <div class="drop-divider"></div>
+                <a th:href="@{/employee/login}" href="#">
+                    <div class="drop-icon" style="background:#FEF3C7;color:#B45309;">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                    Employee Login
+                </a>
+                <a th:href="@{/staff/login}" href="#">
+                    <div class="drop-icon" style="background:#EEF2FF;color:#3730A3;">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+                    Staff Login
+                </a>
+            </div>
+        </li>
 
-		<div id="about" class="mt-5">
-			<div class="feature-card p-4">
-				<h4 class="mb-2">About This Portal</h4>
-				<p class="text-muted mb-0">
-					CCL Medical Claim Portal is designed as an enterprise-grade system with role-based access,
-					clear workflow status, and an easy-to-use UI for employees and staff.
-				</p>
-			</div>
-		</div>
-	</div>
-</main>
+        <li><a href="#help"><i class="bi bi-question-circle me-1"></i>Help</a></li>
+        <li><a href="#company"><i class="bi bi-building me-1"></i>Company</a></li>
+    </ul>
 
-<div th:replace="fragments/footer :: footer"></div>
+    <!-- CTA buttons -->
+    <div class="nav-actions">
+        <a th:href="@{/employee/login}" href="#" class="btn-nav-emp">
+            <i class="bi bi-person-badge-fill"></i> Employee
+        </a>
+        <a th:href="@{/staff/login}" href="#" class="btn-nav-staff">
+            <i class="bi bi-shield-lock-fill"></i> Staff
+        </a>
+    </div>
+
+    <!-- Hamburger -->
+    <button class="hamburger" id="hamburgerBtn" aria-label="Open menu">
+        <span></span><span></span><span></span>
+    </button>
+</nav>
+
+<!-- Mobile overlay -->
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- Mobile sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+    <a th:href="@{/employee/login}" href="#" class="mob-btn mob-btn-emp">
+        <i class="bi bi-person-badge-fill"></i> Employee Login
+    </a>
+    <a th:href="@{/staff/login}" href="#" class="mob-btn mob-btn-staff">
+        <i class="bi bi-shield-lock-fill"></i> Staff Login
+    </a>
+    <div class="mob-divider"></div>
+    <a href="#about"    class="mob-nav-link" onclick="closeSidebar()"><i class="bi bi-info-circle"></i> About</a>
+    <a href="#company"  class="mob-nav-link" onclick="closeSidebar()"><i class="bi bi-building"></i> Company</a>
+    <a href="#workflow" class="mob-nav-link" onclick="closeSidebar()"><i class="bi bi-diagram-3"></i> How it Works</a>
+    <a href="#help"     class="mob-nav-link" onclick="closeSidebar()"><i class="bi bi-question-circle"></i> Help & FAQ</a>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     HERO
+════════════════════════════════════════ -->
+<section class="hero">
+    <div class="container">
+        <div class="row align-items-center g-5">
+
+            <div class="col-lg-6 hero-content">
+                <div class="hero-badge">
+                    <i class="bi bi-patch-check-fill"></i>
+                    Enterprise Medical Claims Portal
+                </div>
+
+                <h1>CCL <span>Medical</span><br>Claim Portal</h1>
+
+                <p class="hero-sub">
+                    Streamlined medical reimbursement for CCL employees — submit bills,
+                    track claims in real-time, and receive payments through a policy-controlled workflow.
+                </p>
+
+                <div class="hero-btns">
+                    <a th:href="@{/employee/login}" href="#" class="btn-hero-emp">
+                        <i class="bi bi-person-badge-fill"></i> Employee Login
+                    </a>
+                    <a th:href="@{/staff/login}" href="#" class="btn-hero-staff">
+                        <i class="bi bi-shield-lock-fill"></i> Staff Login
+                    </a>
+                </div>
+
+                <div class="workflow-steps">
+                    <div class="ws"><i class="bi bi-upload"></i> Submit</div>
+                    <div class="ws-arrow">›</div>
+                    <div class="ws"><i class="bi bi-inbox"></i> Reception</div>
+                    <div class="ws-arrow">›</div>
+                    <div class="ws"><i class="bi bi-clipboard2-pulse"></i> Medical</div>
+                    <div class="ws-arrow">›</div>
+                    <div class="ws"><i class="bi bi-bank"></i> Finance</div>
+                    <div class="ws-arrow">›</div>
+                    <div class="ws"><i class="bi bi-check-circle-fill" style="color:#10B981;"></i> Paid</div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="hero-card">
+                    <h4><i class="bi bi-building-fill"></i> CCL — Quick Info</h4>
+
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-briefcase me-1"></i>Company</span>
+                        <span class="info-val">Central Coalfields Limited (CCL)</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-geo-alt me-1"></i>Location</span>
+                        <span class="info-val">Ranchi, Jharkhand — India</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-globe me-1"></i>Industry</span>
+                        <span class="info-val">Coal Mining & Energy (PSU)</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-envelope me-1"></i>Support</span>
+                        <span class="info-val"><a href="mailto:help@ccl.co.in">help@ccl.co.in</a></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-telephone me-1"></i>Helpline</span>
+                        <span class="info-val">0651-2360001</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label"><i class="bi bi-clock me-1"></i>Hours</span>
+                        <span class="info-val">Mon–Sat, 9:00 AM – 5:30 PM</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ════════════════════════════════════════
+     ABOUT
+════════════════════════════════════════ -->
+<section id="about">
+    <div class="container">
+        <div class="row align-items-center g-5">
+
+            <div class="col-lg-5">
+                <div class="section-tag">About the Portal</div>
+                <h2 class="section-title">Built for CCL employees,<br>designed for clarity</h2>
+                <p class="section-sub mb-4">
+                    The CCL Medical Claim Portal is an enterprise-grade reimbursement system
+                    that replaces paper-based claims with a fully digital, auditable workflow —
+                    ensuring faster payments and zero paperwork.
+                </p>
+                <div style="display:flex;flex-direction:column;gap:.75rem;">
+                    <div style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#0F172A;">
+                        <i class="bi bi-check-circle-fill" style="color:#10B981;font-size:1rem;"></i>
+                        Role-based access for employees and all staff levels
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#0F172A;">
+                        <i class="bi bi-check-circle-fill" style="color:#10B981;font-size:1rem;"></i>
+                        Real-time claim tracking from submission to payment
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#0F172A;">
+                        <i class="bi bi-check-circle-fill" style="color:#10B981;font-size:1rem;"></i>
+                        Policy-controlled medical and finance verification
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#0F172A;">
+                        <i class="bi bi-check-circle-fill" style="color:#10B981;font-size:1rem;"></i>
+                        Secure document upload with PDF bill support
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="feat-card">
+                            <div class="feat-icon blue"><i class="bi bi-file-earmark-medical"></i></div>
+                            <h5>Claim Submission</h5>
+                            <p>Upload bills, reports and medicine details in one structured form.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="feat-card">
+                            <div class="feat-icon green"><i class="bi bi-clipboard2-check"></i></div>
+                            <h5>Medical Review</h5>
+                            <p>Medical officers verify treatment coverage as per company policy.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="feat-card">
+                            <div class="feat-icon amber"><i class="bi bi-bank2"></i></div>
+                            <h5>Finance Approval</h5>
+                            <p>Finance team processes approved claims and initiates payment.</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="feat-card">
+                            <div class="feat-icon teal"><i class="bi bi-shield-check"></i></div>
+                            <h5>Admin Control</h5>
+                            <p>Master and sub-admin panels with full audit and user management.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ════════════════════════════════════════
+     WORKFLOW
+════════════════════════════════════════ -->
+<section id="workflow" class="workflow-bg">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-tag" style="background:rgba(245,158,11,.15);color:var(--accent);border-color:rgba(245,158,11,.3);">
+                How it Works
+            </div>
+            <h2 class="section-title" style="color:#fff;">4-step claim workflow</h2>
+            <p class="section-sub mx-auto" style="color:rgba(255,255,255,.55);">
+                Every claim follows a structured, trackable path from submission to payment.
+            </p>
+        </div>
+
+        <div class="row g-0 justify-content-center">
+            <div class="col-6 col-md-3 position-relative">
+                <div class="step-card">
+                    <div class="step-num">1</div>
+                    <h5>Submit</h5>
+                    <p>Employee uploads bill, reports and medicine details</p>
+                </div>
+                <div class="step-arrow"><i class="bi bi-chevron-right"></i></div>
+            </div>
+            <div class="col-6 col-md-3 position-relative">
+                <div class="step-card">
+                    <div class="step-num">2</div>
+                    <h5>Reception</h5>
+                    <p>Hard copy verified and claim forwarded</p>
+                </div>
+                <div class="step-arrow"><i class="bi bi-chevron-right"></i></div>
+            </div>
+            <div class="col-6 col-md-3 position-relative">
+                <div class="step-card">
+                    <div class="step-num">3</div>
+                    <h5>Medical</h5>
+                    <p>Officer reviews coverage and calculates approved amount</p>
+                </div>
+                <div class="step-arrow"><i class="bi bi-chevron-right"></i></div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="step-card">
+                    <div class="step-num" style="background:#10B981;">4</div>
+                    <h5>Finance & Paid</h5>
+                    <p>Payment processed to employee bank account</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ════════════════════════════════════════
+     COMPANY
+════════════════════════════════════════ -->
+<section id="company" class="company-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-tag">Our Organisation</div>
+            <h2 class="section-title">Central Coalfields Limited</h2>
+            <p class="section-sub mx-auto">
+                A Miniratna Category-I PSU under the Ministry of Coal, Government of India.
+            </p>
+        </div>
+
+        <div class="row g-4 align-items-start">
+
+            <div class="col-lg-6">
+                <div class="company-detail-card">
+                    <div class="detail-item">
+                        <div class="detail-icon"><i class="bi bi-building-fill"></i></div>
+                        <div>
+                            <div class="detail-label">Full Name</div>
+                            <div class="detail-val">Central Coalfields Limited (CCL)</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                        <div>
+                            <div class="detail-label">Headquarters</div>
+                            <div class="detail-val">Darbhanga House, Ranchi, Jharkhand — 834001</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon" style="background:#ECFDF5;color:#059669;"><i class="bi bi-diagram-3-fill"></i></div>
+                        <div>
+                            <div class="detail-label">Parent Company</div>
+                            <div class="detail-val">Coal India Limited (CIL), Ministry of Coal</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon" style="background:#FFFBEB;color:#D97706;"><i class="bi bi-award-fill"></i></div>
+                        <div>
+                            <div class="detail-label">PSU Status</div>
+                            <div class="detail-val">Miniratna Category — I</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon" style="background:#FFF1F2;color:#E11D48;"><i class="bi bi-envelope-fill"></i></div>
+                        <div>
+                            <div class="detail-label">Portal Support</div>
+                            <div class="detail-val"><a href="mailto:help@ccl.co.in">help@ccl.co.in</a></div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon" style="background:#EEF2FF;color:#3730A3;"><i class="bi bi-telephone-fill"></i></div>
+                        <div>
+                            <div class="detail-label">Phone</div>
+                            <div class="detail-val">0651-2360001 / 2360002</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon" style="background:#F0FDFA;color:#0D9488;"><i class="bi bi-globe2"></i></div>
+                        <div>
+                            <div class="detail-label">Website</div>
+                            <div class="detail-val"><a href="https://www.ccl.gov.in" target="_blank">www.ccl.gov.in</a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="map-placeholder mb-4">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <p>Ranchi, Jharkhand</p>
+                    <span>Darbhanga House, CCL Headquarters</span>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="feat-card text-center" style="padding:1.25rem;">
+                            <div class="feat-icon blue mx-auto"><i class="bi bi-people-fill"></i></div>
+                            <h5 style="font-size:.95rem;margin-top:.75rem;">~75,000+</h5>
+                            <p style="font-size:.8rem;">Employees</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="feat-card text-center" style="padding:1.25rem;">
+                            <div class="feat-icon amber mx-auto"><i class="bi bi-minecart-loaded"></i></div>
+                            <h5 style="font-size:.95rem;margin-top:.75rem;">64+ Mines</h5>
+                            <p style="font-size:.8rem;">Across Jharkhand</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ════════════════════════════════════════
+     HELP & FAQ
+════════════════════════════════════════ -->
+<section id="help" class="help-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="section-tag" style="background:#FFFBEB;color:#D97706;border-color:rgba(217,119,6,.2);">Help & Support</div>
+            <h2 class="section-title">How can we help you?</h2>
+            <p class="section-sub mx-auto">Common questions and contact options for CCL Medical Portal.</p>
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-lg-7">
+                <div class="help-card">
+                    <h5><i class="bi bi-chat-left-text-fill" style="color:var(--steel);"></i> Frequently Asked Questions</h5>
+
+                    <div class="faq-item">
+                        <div class="faq-q">How do I submit a medical claim?</div>
+                        <div class="faq-a">Log in as Employee → click "Submit Claim" → fill the form, upload your PDF bill and medical reports, then submit.</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-q">What documents are required?</div>
+                        <div class="faq-a">Original bill (PDF), prescription, medical reports, and doctor's name. Hard copy must also be submitted to Reception.</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-q">How long does processing take?</div>
+                        <div class="faq-a">Typically 5–10 working days: 1–2 days at Reception, 2–3 days Medical review, 2–5 days Finance processing.</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-q">What does "PENDING" status mean?</div>
+                        <div class="faq-a">Your claim is submitted and waiting for Reception to verify the hard copy. Ensure you have submitted the physical bill.</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-q">Can I delete a submitted claim?</div>
+                        <div class="faq-a">Yes — only claims in PENDING or SUBMITTED status can be deleted. Once under review, deletion is not allowed.</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-q">Who do I contact for login issues?</div>
+                        <div class="faq-a">Contact your HR department or email help@ccl.co.in with your Employee ID.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="help-card mb-4">
+                    <h5><i class="bi bi-headset" style="color:var(--steel);"></i> Contact Support</h5>
+
+                    <a href="mailto:help@ccl.co.in" class="contact-chip">
+                        <i class="bi bi-envelope-fill"></i>
+                        <span>help@ccl.co.in</span>
+                    </a>
+                    <a href="tel:06512360001" class="contact-chip">
+                        <i class="bi bi-telephone-fill"></i>
+                        <span>0651-2360001</span>
+                    </a>
+                    <a href="https://www.ccl.gov.in" target="_blank" class="contact-chip">
+                        <i class="bi bi-globe2"></i>
+                        <span>www.ccl.gov.in</span>
+                    </a>
+                    <div class="contact-chip" style="cursor:default;">
+                        <i class="bi bi-clock-fill"></i>
+                        <span>Mon–Sat, 9:00 AM – 5:30 PM</span>
+                    </div>
+                </div>
+
+                <div class="help-card">
+                    <h5><i class="bi bi-door-open-fill" style="color:var(--steel);"></i> Quick Access</h5>
+                    <a th:href="@{/employee/login}" href="#"
+                       style="display:flex;align-items:center;gap:10px;padding:.75rem 1rem;background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;text-decoration:none;margin-bottom:.6rem;transition:all .15s;">
+                        <i class="bi bi-person-badge-fill" style="color:#D97706;font-size:1.1rem;"></i>
+                        <div>
+                            <div style="font-weight:600;font-size:.88rem;color:#0F172A;">Employee Login</div>
+                            <div style="font-size:.78rem;color:#64748B;">Submit & track your claims</div>
+                        </div>
+                        <i class="bi bi-arrow-right ms-auto" style="color:#D97706;"></i>
+                    </a>
+                    <a th:href="@{/staff/login}" href="#"
+                       style="display:flex;align-items:center;gap:10px;padding:.75rem 1rem;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:12px;text-decoration:none;transition:all .15s;">
+                        <i class="bi bi-shield-lock-fill" style="color:#1565C0;font-size:1.1rem;"></i>
+                        <div>
+                            <div style="font-weight:600;font-size:.88rem;color:#0F172A;">Staff Login</div>
+                            <div style="font-size:.78rem;color:#64748B;">Admin, Reception, Medical, Finance</div>
+                        </div>
+                        <i class="bi bi-arrow-right ms-auto" style="color:#1565C0;"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════ -->
+<footer class="ccl-footer">
+    <div class="footer-links">
+        <a href="#about">About</a>
+        <a href="#company">Company</a>
+        <a href="#workflow">How it Works</a>
+        <a href="#help">Help</a>
+        <a href="mailto:help@ccl.co.in">Contact</a>
+    </div>
+    <div>
+        &copy; 2025 <a href="https://www.ccl.gov.in" target="_blank">Central Coalfields Limited</a> —
+        Ranchi, Jharkhand &nbsp;|&nbsp; Medical Claim Portal
+    </div>
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const hamburgerBtn  = document.getElementById('hamburgerBtn');
+    const mobileSidebar = document.getElementById('mobileSidebar');
+    const overlay       = document.getElementById('overlay');
+
+    hamburgerBtn.addEventListener('click', () => {
+        mobileSidebar.classList.toggle('open');
+        overlay.classList.toggle('open');
+    });
+
+    function closeSidebar() {
+        mobileSidebar.classList.remove('open');
+        overlay.classList.remove('open');
+    }
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+            const target = document.querySelector(a.getAttribute('href'));
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+</script>
 </body>
 </html>
