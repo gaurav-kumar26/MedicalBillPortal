@@ -57,6 +57,9 @@ public class Claim {
 	@PrePersist
 	public void generateClaimId() {
 		this.claimId = "CLM-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-		this.status = "PENDING";
+		// Only set PENDING if status not already set by service
+		if (this.status == null) {
+			this.status = "PENDING";
+		}
 	}
 }

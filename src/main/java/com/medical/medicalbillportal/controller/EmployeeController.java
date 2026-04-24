@@ -1,5 +1,6 @@
 package com.medical.medicalbillportal.controller;
 
+import java.security.Principal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,63 +11,82 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.medical.medicalbillportal.entity.Claim;
 import com.medical.medicalbillportal.entity.Employee;
+import com.medical.medicalbillportal.service.ClaimService;
 import com.medical.medicalbillportal.service.EmployeeService;
 
 @Controller
-@RequestMapping("/employee") // 🔥 changed from /employees → /employee
+@RequestMapping("/employee")
 public class EmployeeController {
 
 	@Autowired
 	private EmployeeService employeeService;
 
-	// ===============================
-	// 🔹 EMPLOYEE PORTAL (NEW PART)
-	// ===============================
+	@Autowired
+	private ClaimService claimService;
 
-	// Dashboard
+	// ===============================
+	// 🔹 EMPLOYEE DASHBOARD (UPDATED)
+	// ===============================
 	@GetMapping("/dashboard")
-	public String dashboard() {
+	public String dashboard(Model model, Principal principal) {
+
+		// 🔥 Get logged-in employee
+		Employee employee = employeeService.findByUsername(principal.getName());
+
+		// 🔥 Use DB ID (safe & clean)
+		List<Claim> allClaims = claimService.getClaimsByEmployee(employee.getId());
+
+		List<Claim> rejectedClaims = allClaims.stream().filter(c -> c.getStatus().contains("REJECTED")).toList();
+
+		model.addAttribute("claims", allClaims);
+		model.addAttribute("rejectedClaims", rejectedClaims);
+
 		return "employee-dashboard";
 	}
 
-	// Submit Form Page
+	// ===============================
+	// 🔹 EMPLOYEE PORTAL NAVIGATION
+	// ===============================
 	@GetMapping("/submit")
 	public String showSubmitForm() {
 		return "redirect:/claims/form";
 	}
 
-	// Handle Submit (dummy for now)
 	@PostMapping("/submit")
 	public String submitClaim() {
 		return "redirect:/claims/status";
 	}
 
-	// Status Page
 	@GetMapping("/status")
 	public String showStatus() {
 		return "redirect:/claims/status";
 	}
 
-	// ===============================
-	// 🔹 EMPLOYEE MANAGEMENT (OLD PART)
-	// ===============================
+	@GetMapping("/claim-history")
+	public String claimHistory(Model model, Principal principal) {
+		Employee employee = employeeService.findByUsername(principal.getName());
+		List<Claim> claims = claimService.getClaimsByEmployee(employee.getId());
+		model.addAttribute("claims", claims);
+		return "claim-history-list";
+	}
 
-	// Show employee form
+	// ===============================
+	// 🔹 EMPLOYEE MANAGEMENT
+	// ===============================
 	@GetMapping("/form")
 	public String showEmployeeForm(Model model) {
 		model.addAttribute("employee", new Employee());
 		return "employee-form";
 	}
 
-	// Save employee
 	@PostMapping("/save")
 	public String saveEmployee(@ModelAttribute Employee employee) {
 		employeeService.saveEmployee(employee);
 		return "redirect:/employee/all";
 	}
 
-	// Show all employees
 	@GetMapping("/all")
 	public String getAllEmployees(Model model) {
 		List<Employee> employees = employeeService.getAllEmployees();

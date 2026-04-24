@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>My Claim History</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        body { background: #f4f6fb; }
+        .card-soft { border: 0; border-radius: 18px; box-shadow: 0 12px 35px rgba(0,0,0,0.06); }
+        .badge-status { font-size: 0.75rem; padding: 5px 10px; border-radius: 20px; }
+
+        /* 🔥 Row highlight */
+        .row-rejected { background-color: #fff5f5; }
+        .row-pending { background-color: #f8f9fa; }
+    </style>
+</head>
+
+<body>
+
+<div th:replace="fragments/header :: header"></div>
+
+<div class="d-flex">
+    <div th:replace="fragments/sidebar :: sidebar"></div>
+
+    <main class="flex-grow-1 p-4">
+        <div class="container-fluid">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="fw-bold mb-0">📜 My Claim History</h2>
+
+                <a th:href="@{/claims/form}" class="btn btn-primary btn-sm fw-semibold">
+                    <i class="bi bi-plus-circle me-1"></i>New Claim
+                </a>
+            </div>
+
+            <div class="card card-soft p-3">
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+                            <tr>
+                                <th>Claim ID</th>
+                                <th>Date</th>
+                                <th>Total Amount</th>
+                                <th>Approved Amount</th>
+                                <th>Status</th>
+                                <th class="text-center">Timeline</th>
+                                <th>Action</th> <!-- ✅ ADDED -->
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                        <tr th:each="c : ${claims}"
+                            th:classappend="
+                                ${c.status.contains('REJECTED')} ? 'row-rejected' :
+                                (${c.status == 'PENDING'} ? 'row-pending' : '')">
+
+                            <!-- CLAIM ID -->
+                            <td class="fw-semibold" th:text="${c.claimId}"></td>
+
+                            <!-- DATE -->
+                            <td th:text="${c.claimDate}"></td>
+
+                            <!-- AMOUNT -->
+                            <td>₹ <span th:text="${c.totalAmount}"></span></td>
+
+                            <!-- APPROVED -->
+                            <td>
+                                ₹ <span th:text="${c.approvedAmount != null ? c.approvedAmount : 0}"></span>
+                            </td>
+
+                            <!-- ✅ FIXED STATUS -->
+                            <td>
+                                <span class="badge badge-status"
+                                      th:switch="${c.status}">
+
+                                    <span th:case="'SUBMITTED'" class="bg-primary">Submitted</span>
+                                    <span th:case="'RECEPTION_VERIFIED'" class="bg-info">Reception Verified</span>
+                                    <span th:case="'MEDICAL_APPROVED'" class="bg-success">Medical Approved</span>
+                                    <span th:case="'FINANCE_PAID'" class="bg-success">Paid</span>
+                                    <span th:case="'ON_HOLD'" class="bg-warning text-dark">On Hold</span>
+
+                                    <span th:case="'RECEPTION_REJECTED'" class="bg-danger">Rejected (Reception)</span>
+                                    <span th:case="'MEDICAL_REJECTED'" class="bg-danger">Rejected (Medical)</span>
+                                    <span th:case="'FINANCE_REJECTED'" class="bg-danger">Rejected (Finance)</span>
+
+                                    <span th:case="*" class="bg-secondary" th:text="${c.status}"></span>
+
+                                </span>
+                            </td>
+
+                            <!-- TIMELINE -->
+                            <td class="text-center">
+                                <a th:href="@{/claims/{id}/history(id=${c.id}, source='history')}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-clock-history me-1"></i>View
+                                </a>
+                            </td>
+
+                            <!-- ✅ NEW ACTION COLUMN -->
+                            <td>
+
+                                <!-- RESUBMIT -->
+                                <a th:if="${c.status.contains('REJECTED') or c.status == 'ON_HOLD'}"
+                                   th:href="@{'/claims/resubmit/' + ${c.id}}"
+                                   class="btn btn-warning btn-sm">
+                                    Resubmit
+                                </a>
+
+                                <!-- VIEW ONLY -->
+                                <span th:if="${!(c.status.contains('REJECTED') or c.status == 'ON_HOLD')}"
+                                      class="text-muted">
+                                    —
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                        <!-- EMPTY -->
+                        <tr th:if="${#lists.isEmpty(claims)}">
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                No claims submitted yet.
+                            </td>
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

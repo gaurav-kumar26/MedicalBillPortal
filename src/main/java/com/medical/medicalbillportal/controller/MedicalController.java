@@ -1,5 +1,6 @@
 package com.medical.medicalbillportal.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.medical.medicalbillportal.entity.Claim;
-import com.medical.medicalbillportal.entity.ClaimItem;
+import com.medical.medicalbillportal.repository.ClaimHistoryRepository;
 import com.medical.medicalbillportal.service.ClaimService;
 
 @Controller
@@ -23,125 +24,70 @@ public class MedicalController {
 	@Autowired
 	private ClaimService claimService;
 
-	// ==============================
-	// 1. Dashboard (Show Verified Claims)
-	// ==============================
+	@Autowired
+	private ClaimHistoryRepository historyRepository;
+
 	@GetMapping("/dashboard")
 	public String dashboard(Model model) {
+		// Main queue: reception-verified claims
+		model.addAttribute("claims", claimService.getClaimsByStatus("RECEPTION_VERIFIED"));
 
-		List<Claim> claims = claimService.getClaimsByStatus("RECEPTION_VERIFIED");
+		// Rejected claims that can be sent back to reception
+		model.addAttribute("rejectedClaims", claimService.getClaimsByStatus("MEDICAL_REJECTED"));
 
-		model.addAttribute("claims", claims);
+		// Claims returned from Finance (rolled back to MEDICAL_APPROVED)
+		List<Claim> financeReturned = claimService.getClaimsByStatus("MEDICAL_APPROVED").stream()
+				.filter(c -> c.getRemarks() != null && c.getRemarks().contains("Returned by Finance")).toList();
+		model.addAttribute("financeReturnedClaims", financeReturned);
 
-		return "medical-dashboard";
-	}
+		// Today stats
+		LocalDateTime start = LocalDateTime.now().toLocalDate().atStartOfDay();
+		LocalDateTime end = start.plusDays(1);
+		model.addAttribute("todayApproved",
+				historyRepository.countByRoleAndStatusToday("MEDICAL", "MEDICAL_APPROVED", start, end));
+		model.addAttribute("todayRejected",
+				historyRepository.countByRoleAndStatusToday("MEDICAL", "MEDICAL_REJECTED", start, end));
+		model.addAttribute("todaySentBack",
+				historyRepository.countByRoleAndStatusToday("MEDICAL", "SUBMITTED", start, end));
 
-	// ==============================
-	// 2. Search by Claim ID
-	// ==============================
-	@GetMapping("/search")
-	public String search(@RequestParam(required = false) String claimId, Model model) {
-
-		List<Claim> claims;
-
-		if (claimId == null || claimId.trim().isEmpty()) {
-			// If empty → show all verified claims
-			claims = claimService.getClaimsByStatus("RECEPTION_VERIFIED");
-		} else {
-			// Filter by claimId
-			claims = claimService.getAllClaims().stream()
-					.filter(c -> c.getClaimId() != null && c.getClaimId().equalsIgnoreCase(claimId)).toList();
-		}
-
-		model.addAttribute("claims", claims);
+		// All medical activity
+		model.addAttribute("allHistory", historyRepository.findByChangedByOrderByChangedAtDesc("MEDICAL"));
 
 		return "medical-dashboard";
 	}
 
-	// ==============================
-	// 3. Approve Claim
-	// ==============================
 	@PostMapping("/approve/{id}")
-	public String approveClaim(@PathVariable Long id, @RequestParam Double approvedAmount,
-			@RequestParam String remarks) {
-
-		claimService.approveClaim(id, approvedAmount, remarks);
-
-		return "redirect:/medical/dashboard";
-	}
-
-	// ==============================
-	// 4. Reject Claim
-	// ==============================
-	@PostMapping("/reject/{id}")
-	public String rejectClaim(@PathVariable Long id, @RequestParam String remarks) {
-
-		claimService.rejectClaim(id, remarks);
-
-		return "redirect:/medical/dashboard";
-	}
-
-	// ==============================
-	// 5. Send Back to Reception
-	// ==============================
-	@PostMapping("/send-back/{id}")
-	public String sendBackToReception(@PathVariable Long id) {
-		// Put claim back for recheck (sets status to ON_HOLD via existing service
-		// logic)
-		claimService.verifyClaim(id, false);
-		return "redirect:/medical/dashboard";
-	}
-
-	// ==============================
-	// 6. Process Claim Items
-	// ==============================
-	@PostMapping("/process-items/{id}")
-	public String processItems(@PathVariable Long id, @RequestParam("itemId") List<Long> itemIds,
-			@RequestParam("covered") List<Boolean> covered, @RequestParam String remarks, RedirectAttributes ra) {
-
+	public String approveClaim(@PathVariable Long id, @RequestParam Double approvedAmount, @RequestParam String remarks,
+			RedirectAttributes ra) {
 		try {
-			Claim claim = claimService.getClaimById(id);
-			if (claim == null || claim.getItems() == null || claim.getItems().isEmpty()) {
-				ra.addFlashAttribute("error",
-						"No claim items found to review. Please ask employee to resubmit with items.");
-				return "redirect:/medical/dashboard";
-			}
+			claimService.approveClaim(id, approvedAmount, remarks);
+			ra.addFlashAttribute("success", "Claim approved and sent to Finance.");
+		} catch (Exception e) {
+			ra.addFlashAttribute("error", e.getMessage());
+		}
+		return "redirect:/medical/dashboard";
+	}
 
-			// Map coverage decisions into existing ClaimItems
-			List<ClaimItem> items = claim.getItems();
-			for (int i = 0; i < itemIds.size() && i < covered.size(); i++) {
-				Long itemId = itemIds.get(i);
-				Boolean isCovered = covered.get(i);
-				if (itemId == null || isCovered == null) {
-					continue;
-				}
+	@PostMapping("/reject/{id}")
+	public String rejectClaim(@PathVariable Long id, @RequestParam String remarks, RedirectAttributes ra) {
+		try {
+			claimService.rejectClaim(id, remarks);
+			ra.addFlashAttribute("success", "Claim rejected.");
+		} catch (Exception e) {
+			ra.addFlashAttribute("error", e.getMessage());
+		}
+		return "redirect:/medical/dashboard";
+	}
 
-				for (ClaimItem item : items) {
-					if (itemId.equals(item.getId())) {
-						item.setCovered(isCovered);
-
-						// If amount is not provided, legacy approvedQuantity-based logic is used.
-						if (item.getAmount() == null) {
-							item.setApprovedQuantity(isCovered ? item.getQuantity() : 0);
-						}
-						break;
-					}
-				}
-			}
-
-			Claim processed = claimService.processMedicalItems(id, items);
-			Double approvedAmount = processed.getApprovedAmount() != null ? processed.getApprovedAmount() : 0.0;
-
-			// Keep workflow consistent with Finance module expectations.
-			if (approvedAmount > 0) {
-				claimService.approveClaim(id, approvedAmount, remarks);
-			} else {
-				claimService.rejectClaim(id, remarks);
-			}
-
-			ra.addFlashAttribute("success", "Medical review saved successfully.");
-		} catch (RuntimeException ex) {
-			ra.addFlashAttribute("error", "Unable to process medical review. Please try again.");
+	// ← FIXED: param name is "sendBackReason" to match the HTML form
+	@PostMapping("/send-back/{id}")
+	public String sendBack(@PathVariable Long id, @RequestParam(required = false) String sendBackReason,
+			RedirectAttributes ra) {
+		try {
+			claimService.rollbackClaim(id, "MEDICAL", sendBackReason);
+			ra.addFlashAttribute("info", "Claim returned to Reception.");
+		} catch (Exception e) {
+			ra.addFlashAttribute("error", e.getMessage());
 		}
 		return "redirect:/medical/dashboard";
 	}

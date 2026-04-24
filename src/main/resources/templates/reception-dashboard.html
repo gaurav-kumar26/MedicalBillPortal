@@ -1,88 +1,216 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>Reception Dashboard</title>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-	<style>
-		body { background: #f4f6fb; }
-		.card-soft { border: 0; border-radius: 18px; box-shadow: 0 12px 35px rgba(0,0,0,0.06); }
-	</style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reception Dashboard</title>
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+	rel="stylesheet">
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+	rel="stylesheet">
+<style>
+body {
+	background: #f4f6fb;
+}
+
+.card-soft {
+	border: 0;
+	border-radius: 18px;
+	box-shadow: 0 12px 35px rgba(0, 0, 0, 0.06);
+}
+</style>
 </head>
 <body>
-<div th:replace="fragments/header :: header"></div>
+	<div th:replace="fragments/header :: header"></div>
+	<div class="d-flex">
+		<div th:replace="fragments/sidebar :: sidebar"></div>
+		<main class="flex-grow-1 p-4">
+			<div class="container-fluid">
 
-<div class="d-flex">
-	<div th:replace="fragments/sidebar :: sidebar"></div>
-
-	<main class="flex-grow-1 p-4">
-		<div class="container-fluid">
-			<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-				<h2 class="fw-bold mb-0">Reception Module</h2>
-				<div class="text-muted">Hard-copy handling and reception verification</div>
-			</div>
-
-			<div class="card card-soft p-4">
-				<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-					<h5 class="mb-0">Claims to Verify</h5>
-					<div class="text-muted small">Action below updates the claim’s reception status.</div>
+				<div
+					class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+					<h2 class="fw-bold mb-0">Reception Module</h2>
+					<div class="text-muted">Hard-copy handling and reception
+						verification</div>
 				</div>
 
-				<div class="table-responsive">
-					<table class="table table-bordered align-middle table-hover mb-0">
-						<thead class="table-light">
-						<tr>
-							<th>Claim ID</th>
-							<th>Employee Name</th>
-							<th>GST</th>
-							<th>Total Amount</th>
-							<th>Status</th>
-							<th>Bill</th>
-							<th>Hard Copy</th>
-							<th>Message</th>
-						</tr>
-						</thead>
-						<tbody>
-						<tr th:each="c : ${claims}">
-							<td th:text="${c.claimId}">CLM-XXXX</td>
-							<td th:text="${c.employee != null ? c.employee.name : 'N/A'}">N/A</td>
-							<td th:text="${c.gstNumber}">-</td>
-							<td th:text="${c.totalAmount}">0</td>
-							<td th:text="${c.status}">PENDING</td>
-							<td>
-								<a th:if="${c.billPath != null}" th:href="@{'/uploads/bills/' + ${c.billPath}}" target="_blank" class="btn btn-sm btn-outline-secondary">
-									PDF
-								</a>
-								<span th:if="${c.billPath == null}" class="text-muted small">-</span>
-							</td>
-							<td>
-								<form th:action="@{'/reception/verify/' + ${c.id}}" method="post" class="d-flex flex-column gap-2">
-									<select name="received" class="form-select form-select-sm">
-										<option value="true">YES (Received)</option>
-										<option value="false">NO (Not Received)</option>
-									</select>
-									<button type="submit" class="btn btn-primary btn-sm fw-semibold">
-										Submit
-									</button>
-								</form>
-							</td>
-							<td th:text="${c.remarks}">-</td>
-						</tr>
+				<!-- Flash -->
+				<div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-						<tr th:if="${#lists.isEmpty(claims)}">
-							<td colspan="8" class="text-center text-muted py-4">No claims found.</td>
-						</tr>
-						</tbody>
-					</table>
+				<!-- TODAY STATS -->
+				<div class="row g-3 mb-4">
+					<div class="col-md-4">
+						<div class="card text-white"
+							style="border-radius: 18px; background: #198754;">
+							<div class="card-body">
+								<div class="small">Verified Today</div>
+								<div class="fs-3 fw-bold" th:text="${todayVerified}">0</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="card text-white"
+							style="border-radius: 18px; background: #dc3545;">
+							<div class="card-body">
+								<div class="small">Rejected Today</div>
+								<div class="fs-3 fw-bold" th:text="${todayRejected}">0</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="card text-dark"
+							style="border-radius: 18px; background: #ffc107;">
+							<div class="card-body">
+								<div class="small">Returned by Medical Today</div>
+								<div class="fs-3 fw-bold" th:text="${todayReturned}">0</div>
+							</div>
+						</div>
+					</div>
 				</div>
-			</div>
-		</div>
-	</main>
-</div>
 
-<div th:replace="fragments/footer :: footer"></div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+				<!-- CLAIMS TO VERIFY -->
+				<div class="card card-soft p-4 mb-4">
+					<div class="d-flex justify-content-between align-items-center mb-3">
+						<h5 class="mb-0">Claims to Verify</h5>
+						<div class="text-muted small">Action below updates the
+							claim's reception status.</div>
+					</div>
+					<div class="table-responsive">
+						<table class="table table-bordered align-middle table-hover mb-0">
+							<thead class="table-light">
+								<tr>
+									<th>Claim ID</th>
+									<th>Employee</th>
+									<th>GST</th>
+									<th>Total Amount</th>
+									<th>Status</th>
+									<th>Bill</th>
+									<th>Hard Copy Decision</th>
+									<th>Remarks</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="c : ${claims}">
+									<td><span th:text="${c.claimId}"></span><br /> <a
+										th:href="@{/claims/{id}/history(id=${c.id},source='reception')}"
+										class="small text-info">View History</a></td>
+									<td th:text="${c.employee != null ? c.employee.name : 'N/A'}"></td>
+									<td th:text="${c.gstNumber}">-</td>
+									<td th:text="${c.totalAmount}">0</td>
+									<td th:text="${c.status}"></td>
+									<td><a th:if="${c.billPath != null}"
+										th:href="@{'/files/view/' + ${c.id}}" target="_blank"
+										class="btn btn-sm btn-outline-secondary">PDF</a> <span
+										th:if="${c.billPath == null}" class="text-muted small">-</span>
+									</td>
+									<td>
+										<form th:action="@{'/reception/verify/' + ${c.id}}"
+											method="post" class="d-flex flex-column gap-2">
+											<select name="received" class="form-select form-select-sm">
+												<option value="true">YES (Received)</option>
+												<option value="false">NO (Not Received)</option>
+											</select> <input type="text" name="remarks"
+												placeholder="Reason if rejected"
+												class="form-control form-control-sm" />
+											<button type="submit"
+												class="btn btn-primary btn-sm fw-semibold">Submit</button>
+										</form>
+									</td>
+									<td class="small text-muted" th:text="${c.remarks}">-</td>
+								</tr>
+								<tr th:if="${#lists.isEmpty(claims)}">
+									<td colspan="8" class="text-center text-muted py-4">No
+										claims found.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<!-- RETURNED BY MEDICAL -->
+				<div class="card card-soft p-4 mb-4">
+					<h5 class="mb-3 text-warning">🔁 Claims Returned by Medical
+						Officer</h5>
+					<div class="table-responsive">
+						<table class="table table-bordered align-middle">
+							<thead class="table-light">
+								<tr>
+									<th>Claim ID</th>
+									<th>Employee</th>
+									<th>Medical Remarks</th>
+									<th>Action</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="c : ${returnedClaims}">
+									<td>
+    <span th:text="${c.claimId}"></span><br/>
+    <a th:href="@{/claims/{id}/history(id=${c.id},source='reception')}"
+       class="small text-info">View History</a>
+</td>
+									<td th:text="${c.employee != null ? c.employee.name : 'N/A'}"></td>
+									<td class="text-danger small" th:text="${c.remarks}"></td>
+									<td>
+										<form th:action="@{'/reception/verify/' + ${c.id}}"
+											method="post">
+											<select name="received"
+												class="form-select form-select-sm mb-1">
+												<option value="true">YES - Forward to Medical</option>
+												<option value="false">NO - Reject to Employee</option>
+											</select> <input type="text" name="remarks" placeholder="Remarks"
+												class="form-control form-control-sm mb-1" />
+											<button type="submit" class="btn btn-primary btn-sm w-100">Submit</button>
+										</form>
+									</td>
+								</tr>
+								<tr th:if="${#lists.isEmpty(returnedClaims)}">
+									<td colspan="4" class="text-center text-muted py-3">No
+										returned claims.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<!-- ALL RECEPTION HISTORY -->
+				<div class="card card-soft p-4">
+					<h5 class="mb-3">📋 All Reception Activity</h5>
+					<div class="table-responsive">
+						<table class="table table-sm table-bordered align-middle">
+							<thead class="table-light">
+								<tr>
+									<th>Claim ID</th>
+									<th>Old Status</th>
+									<th>New Status</th>
+									<th>Remarks</th>
+									<th>Time</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr th:each="h : ${allHistory}">
+									<td th:text="${h.claim != null ? h.claim.claimId : '—'}"></td>
+									<td th:text="${h.oldStatus}"></td>
+									<td th:text="${h.newStatus}"></td>
+									<td class="small" th:text="${h.remarks}"></td>
+									<td class="small" th:text="${h.changedAt}"></td>
+								</tr>
+								<tr th:if="${#lists.isEmpty(allHistory)}">
+									<td colspan="5" class="text-center text-muted py-3">No
+										activity yet.</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+			</div>
+		</main>
+	</div>
+	<div th:replace="fragments/footer :: footer"></div>
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

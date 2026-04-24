@@ -59,6 +59,11 @@ public class Employee implements UserDetails {
 	private String ifscCode;
 	private Double yearlyLimit;
 	private Double totalClaimed = 0.0;
+	private LocalDate dateOfJoining;
+	private LocalDate dateOfRetirement;
+	private String phoneNumber;
+	private String address;
+	private String email;
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Claim Details</title>
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+	rel="stylesheet">
+<style>
+body {
+	background: #f4f6fb;
+}
+
+.card-soft {
+	border-radius: 15px;
+	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+	border: 0;
+}
+
+.timeline {
+	position: relative;
+	padding-left: 40px;
+}
+
+.timeline::before {
+	content: '';
+	position: absolute;
+	left: 15px;
+	top: 0;
+	width: 3px;
+	height: 100%;
+	background: #0d6efd;
+}
+
+.timeline-item {
+	position: relative;
+	margin-bottom: 25px;
+}
+
+.timeline-dot {
+	position: absolute;
+	left: -2px;
+	width: 20px;
+	height: 20px;
+	background: #0d6efd;
+	border-radius: 50%;
+}
+
+.timeline-content {
+	background: white;
+	padding: 15px;
+	border-radius: 10px;
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.status-success {
+	color: green;
+	font-weight: bold;
+}
+
+.status-reject {
+	color: red;
+	font-weight: bold;
+}
+
+.status-hold {
+	color: orange;
+	font-weight: bold;
+}
+
+.remarks-block {
+	background: #f8f9fa;
+	border-left: 3px solid #0d6efd;
+	padding: 8px 12px;
+	border-radius: 4px;
+	font-size: 13px;
+}
+</style>
+</head>
+<body>
+
+	<div th:replace="fragments/header :: header"></div>
+	<div class="d-flex">
+		<div th:replace="fragments/sidebar :: sidebar"></div>
+
+		<main class="flex-grow-1 p-4">
+
+			<!-- REPLACE the back button: -->
+			<a
+				th:href="${source == 'status'} ? '/claims/status' :
+            (${source == 'history'} ? '/employee/claim-history' :
+            (${source == 'reception'} ? '/reception/dashboard' :
+            (${source == 'medical'} ? '/medical/dashboard' :
+            (${source == 'finance'} ? '/finance/dashboard' :
+            (${source == 'admin'} ? '/admin/dashboard' :
+            '/employee/claim-history')))))"
+				class="btn btn-secondary mb-3">← Back</a>
+
+			<h3 class="mb-4">📜 Claim Details</h3>
+
+			<!-- CLAIM SUMMARY -->
+			<div class="card card-soft mb-4">
+				<div class="card-body">
+					<h5 class="mb-3">💰 Claim Summary</h5>
+					<div class="row g-2">
+						<div class="col-md-3">
+							<b>Claim ID:</b><br>
+							<span th:text="${claim.claimId}"></span>
+						</div>
+						<div class="col-md-3">
+							<b>Date:</b><br>
+							<span th:text="${claim.claimDate}"></span>
+						</div>
+						<div class="col-md-3">
+							<b>Total Amount:</b><br>₹ <span
+								th:text="${claim.totalAmount}"></span>
+						</div>
+						<div class="col-md-3">
+							<b>Approved Amount:</b><br> <span class="text-success">₹
+								<span
+								th:text="${claim.approvedAmount != null ? claim.approvedAmount : 0}"></span>
+							</span>
+						</div>
+					</div>
+					<hr>
+					<div class="row g-2">
+						<div class="col-md-6">
+							<b>GST Number:</b> <span th:text="${claim.gstNumber}"></span>
+						</div>
+						<div class="col-md-6">
+							<b>Status:</b> <span class="badge bg-secondary"
+								th:text="${claim.status}"></span>
+						</div>
+					</div>
+
+					<!-- REMARKS — split by \n safely using remarksLines from controller -->
+					<div th:if="${remarksLines != null and remarksLines.length > 0}"
+						class="mt-3">
+						<b>Remarks:</b>
+						<div class="remarks-block mt-1">
+							<span th:each="line, stat : ${remarksLines}"> <span
+								th:text="${line}"></span> <br th:if="${!stat.last}" />
+							</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- TIMELINE -->
+			<h5 class="mb-3">🕐 Workflow History</h5>
+			<div class="timeline">
+				<div class="timeline-item" th:each="h : ${historyList}">
+					<div class="timeline-dot"></div>
+					<div class="timeline-content">
+
+						<!-- STATUS CHANGE -->
+						<h6 class="mb-1">
+							<span class="text-muted" th:text="${h.oldStatus}"></span> ➝ <span
+								th:text="${h.newStatus}"
+								th:classappend="${h.newStatus.contains('APPROVED')} ? 'status-success' :
+                                             (${h.newStatus.contains('REJECTED')}  ? 'status-reject'  :
+                                             (${h.newStatus.contains('HOLD')}      ? 'status-hold'    : ''))">
+							</span> <span class="ms-2 text-success fw-bold"
+								th:if="${h.newStatus == 'MEDICAL_APPROVED' or h.newStatus == 'FINANCE_PAID'}">
+								(₹ <span th:text="${claim.approvedAmount}"></span>)
+							</span>
+						</h6>
+
+						<!-- ROLE -->
+						<p class="mb-1 small">
+							👤 <b th:text="${h.changedBy}"></b>
+						</p>
+
+						<!-- REMARKS — single line per history entry, safe -->
+						<p class="mb-1 text-muted small"
+							th:if="${h.remarks != null and !#strings.isEmpty(h.remarks)}">
+							💬 <span th:text="${h.remarks}"></span>
+						</p>
+
+						<!-- TIME -->
+						<small class="text-muted"> ⏱ <span
+							th:text="${#temporals.format(h.changedAt,'dd MMM yyyy HH:mm')}"></span>
+						</small>
+
+					</div>
+				</div>
+
+				<!-- EMPTY -->
+				<div th:if="${#lists.isEmpty(historyList)}" class="text-muted ps-3">
+					No history recorded yet.</div>
+			</div>
+
+		</main>
+	</div>
+
+	<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

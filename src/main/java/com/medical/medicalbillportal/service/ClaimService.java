@@ -17,10 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.medical.medicalbillportal.entity.Claim;
+import com.medical.medicalbillportal.entity.ClaimHistory;
 import com.medical.medicalbillportal.entity.ClaimItem;
 import com.medical.medicalbillportal.entity.ClaimStatus;
 import com.medical.medicalbillportal.entity.FinancePayment;
 import com.medical.medicalbillportal.entity.ItemStatus;
+import com.medical.medicalbillportal.repository.ClaimHistoryRepository;
 import com.medical.medicalbillportal.repository.ClaimRepository;
 
 @Service
@@ -34,6 +36,9 @@ public class ClaimService {
 	@Autowired
 	private FinancePaymentService financePaymentService;
 
+	@Autowired
+	private ClaimHistoryRepository historyRepository;
+
 	private final String uploadDir = "uploads/bills/";
 	private final String reportUploadDir = "uploads/reports/";
 
@@ -42,75 +47,108 @@ public class ClaimService {
 	// ==============================
 	public Claim submitClaim(Claim claim, MultipartFile file, MultipartFile[] reports) throws IOException {
 
-		// Set date
-		claim.setClaimDate(LocalDate.now());
+		// Only set date if not already set by controller
+		if (claim.getClaimDate() == null) {
+			claim.setClaimDate(LocalDate.now());
+		}
 
 		// Duplicate check
 		boolean exists = claimRepository.existsByGstNumberAndClaimDateAndTotalAmount(claim.getGstNumber(),
 				claim.getClaimDate(), claim.getTotalAmount());
-
 		if (exists) {
 			throw new RuntimeException("Duplicate claim detected!");
 		}
 
-		// File upload
+		// Bill validation
+		if (file == null || file.isEmpty()) {
+			throw new RuntimeException("Bill file is required!");
+		}
+		String contentType = file.getContentType();
+		if (contentType == null || (!contentType.equals("application/pdf") && !contentType.equals("image/jpeg")
+				&& !contentType.equals("image/png") && !contentType.equals("image/jpg"))) {
+			throw new RuntimeException("Only PDF, JPG, PNG allowed for bill!");
+		}
+		if (file.getSize() > 1 * 1024 * 1024) {
+			throw new RuntimeException("Bill too large! Max 1MB allowed.");
+		}
+
+		// Save bill
 		String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
 		Path path = Paths.get(uploadDir + fileName);
-
 		Files.createDirectories(path.getParent());
 		Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
 
-		// Set fields
 		claim.setBillPath(fileName);
-		claim.setStatus("SUBMITTED");
-		claim.setApprovedAmount(0.0); // 🔥 important
+		claim.setStatus("SUBMITTED"); // always force SUBMITTED
+		claim.setApprovedAmount(0.0);
 
-		// Persist ClaimItems together with Claim (owning side must be set)
+		// Save items
 		if (claim.getItems() != null) {
 			for (ClaimItem item : claim.getItems()) {
-				if (item == null) {
-					continue;
-				}
-				item.setClaim(claim);
+				if (item != null)
+					item.setClaim(claim);
 			}
 		}
 
-		// Handle optional medical reports upload (UI may send multiple files)
-		if (reports != null && reports.length > 0) {
-			for (MultipartFile report : reports) {
-				if (report == null || report.isEmpty()) {
-					continue;
-				}
-
-				// Keep the same 5MB limit as your FileStorageService for consistency.
-				if (report.getSize() > 5 * 1024 * 1024) {
-					throw new RuntimeException("Report file size exceeds 5MB");
-				}
-
-				String reportName = UUID.randomUUID() + "_" + report.getOriginalFilename();
-				Path reportPath = Paths.get(reportUploadDir + reportName);
-
-				Files.createDirectories(reportPath.getParent());
-				Files.copy(report.getInputStream(), reportPath, StandardCopyOption.REPLACE_EXISTING);
-			}
+		// Report validation
+		if (reports == null || reports.length == 0) {
+			throw new RuntimeException("Medical reports are mandatory!");
 		}
 
-		return claimRepository.save(claim);
-	}
+		boolean hasValidReport = false;
+		for (MultipartFile report : reports) {
+			if (report == null || report.isEmpty())
+				continue;
+			hasValidReport = true;
+			String type = report.getContentType();
+			if (type == null || (!type.equals("application/pdf") && !type.equals("image/jpeg")
+					&& !type.equals("image/png") && !type.equals("image/jpg"))) {
+				throw new RuntimeException("Reports must be PDF or Image!");
+			}
+			if (report.getSize() > 1 * 1024 * 1024) {
+				throw new RuntimeException("Report exceeds 1MB!");
+			}
+			String reportName = UUID.randomUUID() + "_" + report.getOriginalFilename();
+			Path reportPath = Paths.get(reportUploadDir + reportName);
+			Files.createDirectories(reportPath.getParent());
+			Files.copy(report.getInputStream(), reportPath, StandardCopyOption.REPLACE_EXISTING);
+		}
 
-	// ==============================
+		if (!hasValidReport) {
+			throw new RuntimeException("At least one valid medical report is required!");
+		}
+
+		// Save history entry for submission
+		Claim saved = claimRepository.save(claim);
+		saveHistory(saved, "PENDING", "SUBMITTED", "EMPLOYEE", "Claim submitted by employee");
+		return saved;
+	} // ==============================
 	// 2. Reception Verification
 	// ==============================
-	public Claim verifyClaim(Long claimId, boolean received) {
+
+	public Claim verifyClaim(Long claimId, boolean received, String remarks) {
 
 		Claim claim = claimRepository.findById(claimId).orElseThrow(() -> new RuntimeException("Claim not found"));
 
+		String oldStatus = claim.getStatus();
+
 		if (received) {
+
 			claim.setStatus("RECEPTION_VERIFIED");
-			claim.setRemarks("Hard copy received");
+			appendRemarks(claim, "Reception: Hard copy received");
+
+			saveHistory(claim, oldStatus, "RECEPTION_VERIFIED", "RECEPTION", "Hard copy received");
+
 		} else {
-			claim.setStatus("ON_HOLD");
-			claim.setRemarks("Physical copy not submitted");
+
+			// 🔥 SEND BACK TO EMPLOYEE
+			claim.setStatus(ClaimStatus.RECEPTION_REJECTED.getCode());
+
+			String message = (remarks != null && !remarks.isBlank()) ? remarks : "Rejected: Hard copy not submitted";
+
+			appendRemarks(claim, "Rejected by Reception: " + message);
+
+			saveHistory(claim, oldStatus, "REJECTED", "RECEPTION", message);
 		}
 
 		return claimRepository.save(claim);
@@ -123,9 +161,14 @@ public class ClaimService {
 
 		Claim claim = claimRepository.findById(claimId).orElseThrow(() -> new RuntimeException("Claim not found"));
 
+		String oldStatus = claim.getStatus(); // ✅ ADD
+
 		claim.setApprovedAmount(approvedAmount);
-		claim.setRemarks(remarks);
+		appendRemarks(claim, remarks);
+
 		claim.setStatus("MEDICAL_APPROVED");
+
+		saveHistory(claim, oldStatus, "MEDICAL_APPROVED", "MEDICAL", remarks); // ✅ ADD
 
 		return claimRepository.save(claim);
 	}
@@ -137,8 +180,12 @@ public class ClaimService {
 
 		Claim claim = claimRepository.findById(claimId).orElseThrow(() -> new RuntimeException("Claim not found"));
 
-		claim.setRemarks(remarks);
+		String oldStatus = claim.getStatus(); // ✅ ADD
+
+		appendRemarks(claim, remarks);
 		claim.setStatus("MEDICAL_REJECTED");
+
+		saveHistory(claim, oldStatus, "MEDICAL_REJECTED", "MEDICAL", remarks); // ✅ ADD
 
 		return claimRepository.save(claim);
 	}
@@ -156,6 +203,8 @@ public class ClaimService {
 	// ==============================
 	public Claim approvePayment(Long claimId) {
 		Claim claim = claimRepository.findById(claimId).orElseThrow(() -> new RuntimeException("Claim not found"));
+
+		String oldStatus = claim.getStatus();
 
 		ClaimStatus current = ClaimStatus.fromCode(claim.getStatus());
 		if (current == null) {
@@ -186,6 +235,9 @@ public class ClaimService {
 		claim.setProcessedAt(LocalDateTime.now());
 		appendRemarks(claim, "Finance approved payment.");
 
+		// ✅ ADD HISTORY HERE
+		saveHistory(claim, oldStatus, "FINANCE_PAID", "FINANCE", "Payment completed");
+
 		Claim savedClaim = claimRepository.save(claim);
 
 		// Save payment record (final payment action)
@@ -203,6 +255,8 @@ public class ClaimService {
 	// ==============================
 	public Claim rejectPayment(Long claimId, String remarks) {
 		Claim claim = claimRepository.findById(claimId).orElseThrow(() -> new RuntimeException("Claim not found"));
+
+		String oldStatus = claim.getStatus();
 
 		ClaimStatus current = ClaimStatus.fromCode(claim.getStatus());
 		if (current == null) {
@@ -223,6 +277,9 @@ public class ClaimService {
 		appendRemarks(claim, remarks != null && !remarks.isBlank() ? remarks.trim() : "Finance rejected payment.");
 
 		log.info("Finance rejected: claimId={} claimStatus={}", claimId, claim.getStatus());
+
+		saveHistory(claim, oldStatus, "FINANCE_REJECTED", "FINANCE", remarks);
+
 		return claimRepository.save(claim);
 	}
 
@@ -231,6 +288,8 @@ public class ClaimService {
 	// ==============================
 	public Claim holdPayment(Long claimId, String remarks) {
 		Claim claim = claimRepository.findById(claimId).orElseThrow(() -> new RuntimeException("Claim not found"));
+
+		String oldStatus = claim.getStatus();
 
 		ClaimStatus current = ClaimStatus.fromCode(claim.getStatus());
 		if (current == null) {
@@ -251,7 +310,54 @@ public class ClaimService {
 		appendRemarks(claim, remarks != null && !remarks.isBlank() ? remarks.trim() : "Payment held.");
 
 		log.info("Finance held: claimId={} claimStatus={}", claimId, claim.getStatus());
+
+		saveHistory(claim, oldStatus, "FINANCE_HOLD", "FINANCE", remarks);
+
 		return claimRepository.save(claim);
+	}
+
+	public Claim rollbackClaim(Long claimId, String role, String remarks) {
+
+		Claim claim = claimRepository.findById(claimId).orElseThrow(() -> new RuntimeException("Claim not found"));
+
+		String oldStatus = claim.getStatus();
+
+		if ("MEDICAL".equalsIgnoreCase(role)) {
+			// Allow send-back from RECEPTION_VERIFIED (currently reviewing)
+			// OR from MEDICAL_REJECTED (already rejected, sending back)
+			if ("RECEPTION_VERIFIED".equals(oldStatus) || "MEDICAL_REJECTED".equals(oldStatus)) {
+				claim.setStatus("SUBMITTED");
+				String msg = (remarks != null && !remarks.isBlank()) ? "Returned by Medical: " + remarks.trim()
+						: "Returned by Medical Officer";
+				appendRemarks(claim, msg);
+				saveHistory(claim, oldStatus, "SUBMITTED", "MEDICAL", msg);
+			} else {
+				throw new RuntimeException("Rollback not allowed from status: " + oldStatus);
+			}
+		}
+
+		else if ("FINANCE".equalsIgnoreCase(role)) {
+			if ("FINANCE_REJECTED".equals(oldStatus) || "FINANCE_HOLD".equals(oldStatus)) {
+				claim.setStatus("MEDICAL_APPROVED");
+				String msg = (remarks != null && !remarks.isBlank()) ? "Returned by Finance: " + remarks.trim()
+						: "Returned by Finance Officer";
+				appendRemarks(claim, msg);
+				saveHistory(claim, oldStatus, "MEDICAL_APPROVED", "FINANCE", msg);
+			} else {
+				throw new RuntimeException("Rollback not allowed from status: " + oldStatus);
+			}
+		}
+
+		else {
+			throw new RuntimeException("Invalid role for rollback");
+		}
+
+		return claimRepository.save(claim);
+	}
+
+	// Backward-compatible — keeps old callers working
+	public Claim rollbackClaim(Long claimId, String role) {
+		return rollbackClaim(claimId, role, null);
 	}
 
 	// Appends new remarks instead of replacing existing remarks.
@@ -267,6 +373,18 @@ public class ClaimService {
 		}
 
 		claim.setRemarks(existing.trim() + "\n" + newRemarks.trim());
+	}
+
+	private void saveHistory(Claim claim, String oldStatus, String newStatus, String role, String remarks) {
+
+		ClaimHistory history = new ClaimHistory();
+		history.setClaim(claim);
+		history.setOldStatus(oldStatus);
+		history.setNewStatus(newStatus);
+		history.setChangedBy(role);
+		history.setRemarks(remarks);
+
+		historyRepository.save(history);
 	}
 
 	// ==============================

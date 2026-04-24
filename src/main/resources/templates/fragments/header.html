@@ -1,119 +1,104 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+	xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <div th:fragment="header">
 
-    <!-- 🔥 Custom Style -->
-     <style>
-        .navbar-brand {
-            letter-spacing: 1px;
-            font-size: 22px;
-        }
+	<!-- 🔥 Custom Style -->
+	<style>
+.navbar-brand {
+	letter-spacing: 1px;
+	font-size: 22px;
+}
 
-        .navbar {
-            border-radius: 0 0 15px 15px;
-        }
-    </style>
+.navbar {
+	border-radius: 0 0 15px 15px;
+}
+</style>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-lg sticky-top">
-        <div class="container">
+	<nav
+		class="navbar navbar-expand-lg navbar-dark bg-dark shadow-lg sticky-top">
+		<div class="container">
 
-            <!-- Logo -->
-            <a class="navbar-brand fw-bold text-warning">
-                💊 Medical Portal
-            </a>
+			<a class="navbar-brand fw-bold text-warning text-decoration-none"
+				sec:authorize="hasRole('EMPLOYEE')" th:href="@{/employee/dashboard}">
+				💊 MediClaim </a> <a
+				class="navbar-brand fw-bold text-warning text-decoration-none"
+				sec:authorize="!hasRole('EMPLOYEE')" th:href="@{/}"> 💊
+				MediClaim </a>
 
-            <!-- Toggle -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+			<!-- Toggle -->
+			<button class="navbar-toggler" type="button"
+				data-bs-toggle="collapse" data-bs-target="#navbarNav">
+				<span class="navbar-toggler-icon"></span>
+			</button>
 
-            <!-- Menu -->
-            <div class="collapse navbar-collapse" id="navbarNav">
+			<!-- Menu -->
+			<div class="collapse navbar-collapse" id="navbarNav">
 
-                <ul class="navbar-nav ms-auto align-items-center gap-2">
+				<ul class="navbar-nav ms-auto align-items-center gap-2">
 
-                    <!-- 👤 EMPLOYEE -->
-                    <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
-                        <a class="btn btn-outline-light btn-sm px-3"
-                           th:href="@{/employee/dashboard}">
-                            👤 Employee
-                        </a>
-                    </li>
+					<!-- 👤 EMPLOYEE -->
+					<li class="nav-item" sec:authorize="hasRole('EMPLOYEE')"><a
+						class="btn btn-outline-light btn-sm px-3"
+						th:href="@{/employee/dashboard}"> 👤 Employee </a></li>
 
-                    <!-- 🧾 RECEPTION -->
-                    <li class="nav-item" sec:authorize="hasRole('RECEPTION')">
-                        <a class="btn btn-outline-warning btn-sm px-3"
-                           th:href="@{/reception/dashboard}">
-                            🧾 Reception
-                        </a>
-                    </li>
+					<!-- 🧾 RECEPTION -->
+					<li class="nav-item" sec:authorize="hasRole('RECEPTION')"><a
+						class="btn btn-outline-warning btn-sm px-3"
+						th:href="@{/reception/dashboard}"> 🧾 Reception </a></li>
 
-                    <!-- 🏥 MEDICAL -->
-                    <li class="nav-item" sec:authorize="hasRole('MEDICAL_OFFICER')">
-                        <a class="btn btn-outline-info btn-sm px-3"
-                           th:href="@{/medical/dashboard}">
-                            🏥 Medical
-                        </a>
-                    </li>
+					<!-- 🏥 MEDICAL -->
+					<li class="nav-item" sec:authorize="hasRole('MEDICAL_OFFICER')">
+						<a class="btn btn-outline-info btn-sm px-3"
+						th:href="@{/medical/dashboard}"> 🏥 Medical </a>
+					</li>
 
-                    <!-- 💰 FINANCE -->
-                    <li class="nav-item" sec:authorize="hasRole('FINANCE_OFFICER')">
-                        <a class="btn btn-outline-success btn-sm px-3"
-                           th:href="@{/finance/dashboard}">
-                            💰 Finance
-                        </a>
-                    </li>
+					<!-- 💰 FINANCE -->
+					<li class="nav-item" sec:authorize="hasRole('FINANCE_OFFICER')">
+						<a class="btn btn-outline-success btn-sm px-3"
+						th:href="@{/finance/dashboard}"> 💰 Finance </a>
+					</li>
 
-                    <!-- 👤 PROFILE -->
-                    <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                        <a class="btn btn-outline-warning btn-sm dropdown-toggle px-3"
-                           href="#" role="button" data-bs-toggle="dropdown">
-                            👤 Profile
-                        </a>
+					<!-- 👤 PROFILE -->
+					<li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+						<a class="btn btn-outline-warning btn-sm dropdown-toggle px-3"
+						href="#" role="button" data-bs-toggle="dropdown"> 👤 Profile </a>
 
-                        <ul class="dropdown-menu dropdown-menu-end">
+						<ul class="dropdown-menu dropdown-menu-end">
 
-                            <!-- Username -->
-                            <li>
-                                <span class="dropdown-item">
-                                    👤 <span sec:authentication="name"></span>
-                                </span>
-                            </li>
+							<!-- Username -->
+							<li><span class="dropdown-item"> 👤 <span
+									sec:authentication="name"></span>
+							</span></li>
 
-                            <li><hr class="dropdown-divider"></li>
+							<li><hr class="dropdown-divider"></li>
 
-                            <!-- 🔥 LOGOUT -->
-                            <li>
+							<!-- 🔥 LOGOUT -->
+							<li>
+								<!-- Employee Logout -->
+								<form
+									th:if="${#authorization.expression('hasRole(''EMPLOYEE'')')}"
+									th:action="@{/logout}" method="post">
+									<button class="dropdown-item text-danger">🚪 Logout</button>
+								</form> <!-- Staff Logout -->
+								<form
+									th:if="${#authorization.expression('!hasRole(''EMPLOYEE'')')}"
+									th:action="@{/staff/logout}" method="post">
+									<button class="dropdown-item text-danger">🚪 Logout</button>
+								</form>
 
-                                <!-- Employee Logout -->
-                                <form th:if="${#authorization.expression('hasRole(''EMPLOYEE'')')}"
-                                      th:action="@{/logout}" method="post">
-                                    <button class="dropdown-item text-danger">
-                                        🚪 Logout
-                                    </button>
-                                </form>
+							</li>
 
-                                <!-- Staff Logout -->
-                                <form th:if="${#authorization.expression('!hasRole(''EMPLOYEE'')')}"
-                                      th:action="@{/staff/logout}" method="post">
-                                    <button class="dropdown-item text-danger">
-                                        🚪 Logout
-                                    </button>
-                                </form>
+						</ul>
+					</li>
 
-                            </li>
+				</ul>
 
-                        </ul>
-                    </li>
+			</div>
 
-                </ul>
-
-            </div>
-
-        </div>
-    </nav>
+		</div>
+	</nav>
 
 </div>
 </html>

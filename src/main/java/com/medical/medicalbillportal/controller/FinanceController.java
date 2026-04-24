@@ -1,6 +1,8 @@
 package com.medical.medicalbillportal.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.medical.medicalbillportal.entity.Claim;
+import com.medical.medicalbillportal.repository.ClaimHistoryRepository;
 import com.medical.medicalbillportal.service.ClaimService;
 
 @Controller
@@ -22,54 +25,64 @@ public class FinanceController {
 	@Autowired
 	private ClaimService claimService;
 
-	// ==============================
-	// 1. Show Approved Claims
-	// ==============================
-	@GetMapping("/dashboard") // 🔥 FIXED
+	@Autowired
+	private ClaimHistoryRepository historyRepository;
+
+	@GetMapping("/dashboard")
 	public String dashboard(Model model) {
 
-		List<Claim> claims = claimService.getClaimsByStatus("MEDICAL_APPROVED");
+		model.addAttribute("claims", claimService.getClaimsByStatus("MEDICAL_APPROVED"));
 
-		model.addAttribute("claims", claims);
+		// Held + Rejected visible in finance for rollback
+		List<Claim> heldRejected = Stream.concat(claimService.getClaimsByStatus("FINANCE_HOLD").stream(),
+				claimService.getClaimsByStatus("FINANCE_REJECTED").stream()).toList();
+		model.addAttribute("heldRejectedClaims", heldRejected);
+
+		// Overall stats
 		model.addAttribute("totalClaims", claimService.getTotalClaims());
 		model.addAttribute("approvedClaims", claimService.getApprovedClaims());
 		model.addAttribute("pendingClaims", claimService.getPendingClaims());
 		model.addAttribute("rejectedClaims", claimService.getRejectedClaims());
 
+		// ── Today stats ──
+		LocalDateTime todayStart = LocalDateTime.now().toLocalDate().atStartOfDay();
+		LocalDateTime todayEnd = todayStart.plusDays(1);
+
+		model.addAttribute("todayPaid",
+				historyRepository.countByRoleAndStatusToday("FINANCE", "FINANCE_PAID", todayStart, todayEnd));
+		model.addAttribute("todayFinanceRejected",
+				historyRepository.countByRoleAndStatusToday("FINANCE", "FINANCE_REJECTED", todayStart, todayEnd));
+		model.addAttribute("todayHeld",
+				historyRepository.countByRoleAndStatusToday("FINANCE", "FINANCE_HOLD", todayStart, todayEnd));
+
+		// ── All-time records ──
+		model.addAttribute("allHistory", historyRepository.findByChangedByOrderByChangedAtDesc("FINANCE"));
+
 		return "finance-dashboard";
 	}
 
-	// ==============================
-	// 2. Mark as Paid
-	// ==============================
 	@PostMapping("/pay/{id}")
 	public String pay(@PathVariable Long id, RedirectAttributes ra) {
 		try {
 			claimService.markAsPaid(id);
-			ra.addFlashAttribute("success", "Payment approved and processed successfully.");
-		} catch (RuntimeException ex) {
-			ra.addFlashAttribute("error", toUserMessage(ex));
-		}
-		return "redirect:/finance/dashboard"; // 🔥 FIXED
-	}
-
-	// ==============================
-	// 2a. Approve Payment (preferred)
-	// ==============================
-	@PostMapping("/approve/{id}")
-	public String approve(@PathVariable Long id, RedirectAttributes ra) {
-		try {
-			claimService.approvePayment(id);
-			ra.addFlashAttribute("success", "Payment approved and processed successfully.");
+			ra.addFlashAttribute("success", "Payment processed successfully.");
 		} catch (RuntimeException ex) {
 			ra.addFlashAttribute("error", toUserMessage(ex));
 		}
 		return "redirect:/finance/dashboard";
 	}
 
-	// ==============================
-	// 3. Reject Payment
-	// ==============================
+	@PostMapping("/approve/{id}")
+	public String approve(@PathVariable Long id, RedirectAttributes ra) {
+		try {
+			claimService.approvePayment(id);
+			ra.addFlashAttribute("success", "Payment approved successfully.");
+		} catch (RuntimeException ex) {
+			ra.addFlashAttribute("error", toUserMessage(ex));
+		}
+		return "redirect:/finance/dashboard";
+	}
+
 	@PostMapping("/reject/{id}")
 	public String rejectPayment(@PathVariable Long id, @RequestParam String remarks, RedirectAttributes ra) {
 		try {
@@ -81,9 +94,6 @@ public class FinanceController {
 		return "redirect:/finance/dashboard";
 	}
 
-	// ==============================
-	// 4. Hold Payment
-	// ==============================
 	@PostMapping("/hold/{id}")
 	public String holdPayment(@PathVariable Long id,
 			@RequestParam(required = false, defaultValue = "Payment held") String remarks, RedirectAttributes ra) {
@@ -98,18 +108,13 @@ public class FinanceController {
 
 	private String toUserMessage(RuntimeException ex) {
 		String msg = ex.getMessage() != null ? ex.getMessage() : "";
-		String normalized = msg.toLowerCase();
-
-		if (normalized.contains("already processed")) {
-			return "This claim is already paid. Duplicate payment is not allowed.";
-		}
-		if (normalized.contains("approved amount")) {
-			return "Cannot process payment. Approved amount must be greater than 0.";
-		}
-		if (normalized.contains("invalid finance transition")) {
-			return "This action is not allowed for the current claim status. Please refresh and try again.";
-		}
-
-		return "Unable to process finance action. Please try again or contact the administrator.";
+		String n = msg.toLowerCase();
+		if (n.contains("already processed"))
+			return "This claim is already paid.";
+		if (n.contains("approved amount"))
+			return "Approved amount must be greater than 0.";
+		if (n.contains("invalid finance"))
+			return "Action not allowed for current status.";
+		return "Unable to process. Please try again.";
 	}
 }

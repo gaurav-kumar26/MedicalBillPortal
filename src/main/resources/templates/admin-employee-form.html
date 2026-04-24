@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Employee Form</title>
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+	rel="stylesheet">
+<style>
+body {
+	background: #f4f6fb;
+}
+
+.card-soft {
+	border: 0;
+	border-radius: 18px;
+	box-shadow: 0 12px 35px rgba(0, 0, 0, .06);
+}
+</style>
+</head>
+<body>
+	<div th:replace="fragments/header :: header"></div>
+	<div class="d-flex">
+		<div th:replace="fragments/sidebar :: sidebar"></div>
+		<main class="flex-grow-1 p-4">
+			<div class="container-fluid">
+
+				<div class="d-flex justify-content-between align-items-center mb-3">
+					<h2 class="fw-bold mb-0"
+						th:text="${isNew} ? 'Add Employee' : 'Edit Employee'"></h2>
+					<a href="/admin/employees" class="btn btn-outline-secondary">←
+						Back to List</a>
+				</div>
+
+				<div class="card card-soft p-4">
+					<form th:action="@{/admin/employees/save}" th:object="${employee}"
+						method="post">
+
+						<input type="hidden" th:field="*{id}" />
+
+						<h6 class="fw-bold mb-3 text-primary">🔐 Login Details</h6>
+						<div class="row g-3 mb-3">
+							<div class="col-md-4">
+								<label class="form-label fw-semibold">Employee ID (Login
+									Username) *</label> <input type="text" th:field="*{employeeId}"
+									class="form-control" required>
+							</div>
+							<div class="col-md-4">
+								<label class="form-label fw-semibold">Password *</label> <input
+									type="text" th:field="*{password}" class="form-control"
+									th:placeholder="${isNew} ? 'Set password' : 'Leave blank to keep current'">
+							</div>
+							<div class="col-md-4">
+								<label class="form-label fw-semibold">Role *</label> <select
+									th:field="*{role}" class="form-control" required>
+									<option value="">Select Role</option>
+									<option value="ROLE_EMPLOYEE">Employee</option>
+									<option value="ROLE_RECEPTION">Reception</option>
+									<option value="ROLE_MEDICAL_OFFICER">Medical Officer</option>
+									<option value="ROLE_FINANCE_OFFICER">Finance Officer</option>
+									<option value="ROLE_ADMIN">Admin</option>
+								</select>
+							</div>
+						</div>
+
+						<hr />
+						<h6 class="fw-bold mb-3 text-primary">👤 Personal Details</h6>
+						<div class="row g-3 mb-3">
+							<div class="col-md-6">
+								<label class="form-label fw-semibold">Full Name *</label> <input
+									type="text" th:field="*{name}" class="form-control" required>
+							</div>
+							<div class="col-md-3">
+								<label class="form-label fw-semibold">Date of Birth</label> <input
+									type="date" th:field="*{dob}" class="form-control">
+							</div>
+							<div class="col-md-3">
+								<label class="form-label fw-semibold">Phone Number</label> <input
+									type="text" th:field="*{phoneNumber}" class="form-control"
+									placeholder="10-digit mobile">
+							</div>
+							<div class="col-md-6">
+								<label class="form-label fw-semibold">Email</label> <input
+									type="email" th:field="*{email}" class="form-control">
+							</div>
+							<div class="col-md-6">
+								<label class="form-label fw-semibold">Address</label> <input
+									type="text" th:field="*{address}" class="form-control">
+							</div>
+						</div>
+
+						<hr />
+						<h6 class="fw-bold mb-3 text-primary">🏢 Employment Details</h6>
+						<div class="row g-3 mb-3">
+							<div class="col-md-4">
+								<label class="form-label fw-semibold">Department</label> <input
+									type="text" th:field="*{department}" class="form-control">
+							</div>
+							<div class="col-md-4">
+								<label class="form-label fw-semibold">Designation</label> <input
+									type="text" th:field="*{designation}" class="form-control">
+							</div>
+							<div class="col-md-4">
+								<label class="form-label fw-semibold">Yearly Claim Limit
+									(₹)</label> <input type="number" step="0.01" th:field="*{yearlyLimit}"
+									class="form-control">
+							</div>
+							<div class="col-md-4">
+								<label class="form-label fw-semibold">Date of Joining</label> <input
+									type="date" th:field="*{dateOfJoining}" class="form-control">
+							</div>
+							<div class="col-md-4">
+								<label class="form-label fw-semibold">Date of Retirement</label>
+								<input type="date" th:field="*{dateOfRetirement}"
+									class="form-control">
+							</div>
+							<div class="col-md-4">
+								<label class="form-label fw-semibold">Account Status</label> <select
+									th:field="*{enabled}" class="form-control">
+									<option value="true">Active</option>
+									<option value="false">Suspended</option>
+								</select>
+							</div>
+						</div>
+
+						<hr />
+						<h6 class="fw-bold mb-3 text-primary">🏦 Bank Details</h6>
+						<div class="row g-3 mb-3">
+							<div class="col-md-6">
+								<label class="form-label fw-semibold">Bank Account
+									Number</label> <input type="text" th:field="*{bankAccount}"
+									class="form-control">
+							</div>
+							<div class="col-md-6">
+								<label class="form-label fw-semibold">IFSC Code</label> <input
+									type="text" th:field="*{ifscCode}" class="form-control">
+							</div>
+						</div>
+
+						<div class="d-flex gap-2 mt-3">
+							<button type="submit" class="btn btn-primary fw-semibold">
+								<i class="bi bi-save2 me-1"></i>Save Employee
+							</button>
+							<a href="/admin/employees" class="btn btn-outline-secondary">Cancel</a>
+						</div>
+
+					</form>
+				</div>
+			</div>
+		</main>
+	</div>
+	<div th:replace="fragments/footer :: footer"></div>
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

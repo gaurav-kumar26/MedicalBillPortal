@@ -1,45 +1,78 @@
-<div xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="sidebar">
+<div xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	th:fragment="sidebar">
 
-    <div class="bg-white border-end p-3" style="width: 260px; min-height: 100vh;">
-        <h5 class="text-muted mb-3">Modules</h5>
+	<button id="sidebarToggle"
+		class="btn btn-sm btn-outline-secondary position-fixed"
+		style="top: 70px; left: 10px; z-index: 999; display: none;"
+		onclick="toggleSidebar()">☰</button>
 
-        <ul class="nav flex-column gap-2">
+	<div id="sidebarPanel" class="bg-white border-end p-3"
+		style="width: 240px; min-height: 100vh; height: 100%; flex-shrink: 0; transition: all 0.3s ease;">
 
-            <!-- Employee -->
-            <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
-                <a class="nav-link" href="/employee/dashboard">Employee Dashboard</a>
-            </li>
-            <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
-                <a class="nav-link" href="/claims/form">Submit Claim</a>
-            </li>
-            <li class="nav-item" sec:authorize="hasRole('EMPLOYEE')">
-                <a class="nav-link" href="/claims/status">Claim Status</a>
-            </li>
+		<div class="d-flex justify-content-between align-items-center mb-3">
+			<h6 class="text-muted mb-0 fw-bold">Modules</h6>
+			<button class="btn btn-sm btn-outline-secondary"
+				onclick="toggleSidebar()">✕</button>
+		</div>
 
-            <!-- Admin -->
-            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                <a class="nav-link" href="/admin/dashboard">Admin Control</a>
-            </li>
-            <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                <a class="nav-link" href="/employee/all">Manage Employees</a>
-            </li>
+		<ul class="nav flex-column gap-1">
 
-            <!-- Reception -->
-            <li class="nav-item" sec:authorize="hasRole('RECEPTION')">
-                <a class="nav-link" href="/reception/dashboard">Reception</a>
-            </li>
+			<!-- EMPLOYEE -->
+			<li class="nav-item" sec:authorize="hasRole('EMPLOYEE')"><a
+				class="nav-link py-2 px-2 rounded" href="/employee/dashboard">🏠
+					Dashboard</a></li>
+			<li class="nav-item" sec:authorize="hasRole('EMPLOYEE')"><a
+				class="nav-link py-2 px-2 rounded" href="/claims/form">📋 Submit
+					Claim</a></li>
+			<li class="nav-item" sec:authorize="hasRole('EMPLOYEE')"><a
+				class="nav-link py-2 px-2 rounded" href="/claims/status">📊
+					Claim Status</a></li>
+			<li class="nav-item" sec:authorize="hasRole('EMPLOYEE')"><a
+				class="nav-link py-2 px-2 rounded" href="/employee/claim-history">📜
+					Claim History</a></li>
 
-            <!-- Medical -->
-            <li class="nav-item" sec:authorize="hasRole('MEDICAL')">
-                <a class="nav-link" href="/medical/dashboard">Medical Officer</a>
-            </li>
+			<!-- ADMIN -->
+			
+			
 
-            <!-- Finance -->
-            <li class="nav-item" sec:authorize="hasRole('FINANCE')">
-                <a class="nav-link" href="/finance/dashboard">Finance</a>
-            </li>
+			<!-- ADMIN section — add after existing Admin Control link -->
+			<li class="nav-item" sec:authorize="hasRole('ADMIN')"><a
+				class="nav-link py-2 px-2 rounded" href="/admin/dashboard">🛡️
+					Admin Control</a></li>
+			<li class="nav-item" sec:authorize="hasRole('ADMIN')"><a
+				class="nav-link py-2 px-2 rounded" href="/admin/employees">👥
+					Employee CRUD</a></li>
+			<li class="nav-item" sec:authorize="hasRole('ADMIN')"><a
+				class="nav-link py-2 px-2 rounded" href="/admin/workflow">📊
+					Workflow History</a></li>
 
-        </ul>
-    </div>
+			<!-- RECEPTION -->
+			<li class="nav-item" sec:authorize="hasRole('RECEPTION')"><a
+				class="nav-link py-2 px-2 rounded" href="/reception/dashboard">🧾
+					Reception</a></li>
 
+			<!-- MEDICAL -->
+			<li class="nav-item" sec:authorize="hasRole('MEDICAL_OFFICER')">
+				<a class="nav-link py-2 px-2 rounded" href="/medical/dashboard">🏥
+					Medical Officer</a>
+			</li>
+
+			<!-- FINANCE -->
+			<li class="nav-item" sec:authorize="hasRole('FINANCE_OFFICER')">
+				<a class="nav-link py-2 px-2 rounded" href="/finance/dashboard">💰
+					Finance</a>
+			</li>
+
+		</ul>
+	</div>
+
+	<script>
+		function toggleSidebar() {
+			const panel = document.getElementById('sidebarPanel');
+			const toggle = document.getElementById('sidebarToggle');
+			const isOpen = panel.style.display !== 'none';
+			panel.style.display = isOpen ? 'none' : 'block';
+			toggle.style.display = isOpen ? 'block' : 'none';
+		}
+	</script>
 </div>
